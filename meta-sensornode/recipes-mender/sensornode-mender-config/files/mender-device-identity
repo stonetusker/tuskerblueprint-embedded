@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+for field in $(cat /proc/cmdline 2>/dev/null || true); do
+  case "$field" in
+    sensornode.device_id=*)
+      printf 'device_id=%s\n' "${field#sensornode.device_id=}"
+      exit 0
+      ;;
+  esac
+done
+printf 'device_id=%s\n' "$(cat /etc/machine-id 2>/dev/null || hostname)"

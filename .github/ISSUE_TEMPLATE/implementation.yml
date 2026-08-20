@@ -1,0 +1,27 @@
+name: Implementation Work Item
+description: Traceable implementation work
+body:
+  - type: input
+    id: requirement
+    attributes:
+      label: Requirement IDs
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+    validations:
+      required: true
+  - type: textarea
+    id: test
+    attributes:
+      label: Verification and Evidence
+    validations:
+      required: true

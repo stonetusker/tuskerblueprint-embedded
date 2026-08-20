@@ -1,0 +1,49 @@
+- name: Validate required architecture
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture in ['x86_64', 'aarch64']
+      - ansible_memtotal_mb >= 16000
+    fail_msg: VPS8 must provide a supported architecture and at least 16 GiB RAM.
+
+- name: Install host packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - jq
+      - python3
+      - python3-venv
+      - qemu-system-arm
+      - qemu-utils
+      - rsync
+      - unzip
+    state: present
+    update_cache: true
+
+- name: Create service group
+  ansible.builtin.group:
+    name: "{{ service_group }}"
+    system: true
+
+- name: Create service user
+  ansible.builtin.user:
+    name: "{{ service_user }}"
+    group: "{{ service_group }}"
+    system: true
+    create_home: true
+    shell: /bin/bash
+
+- name: Create project directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0750'
+  loop:
+    - "{{ project_root }}"
+    - "{{ project_data_root }}"
+    - "{{ cache_root }}"
+    - "{{ cache_root }}/downloads"
+    - "{{ cache_root }}/sstate"

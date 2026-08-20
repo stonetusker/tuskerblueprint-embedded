@@ -1,0 +1,103 @@
+pipeline {
+  agent { label 'yocto-vps8' }
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '10'))
+    timeout(time: 4, unit: 'HOURS')
+  }
+
+  parameters {
+    string(name: 'SOURCE_COMMIT', defaultValue: 'main', description: 'Commit or branch to diagnose')
+    string(name: 'REBUILD_COMMIT', defaultValue: '', description: 'Optional reviewed commit for an approved rebuild')
+    booleanParam(name: 'DIAGNOSTIC_REBUILD', defaultValue: false, description: 'Permit the approval stage to offer a rebuild')
+  }
+
+  environment {
+    KAS_FILE = 'kas/ci.yml'
+    IMAGE = 'sensornode-image-ci'
+    CACHE_DIR = '/srv/yocto-cache'
+    ARTIFACT_DIR = "${WORKSPACE}/artifacts"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh '''
+          git fetch --all --tags --prune
+          git rev-parse --verify "${SOURCE_COMMIT}^{commit}"
+          git checkout --detach "${SOURCE_COMMIT}"
+        '''
+      }
+    }
+
+    stage('Validate') {
+      steps { sh 'make docs-check app-test python-check shell-check' }
+    }
+
+    stage('Build and QEMU Test') {
+      steps {
+        script {
+          env.INITIAL_RESULT = 'SUCCESS'
+          try {
+            sh 'scripts/build-image.sh'
+            sh 'scripts/run-qemu-tests.sh'
+          } catch (err) {
+            env.INITIAL_RESULT = 'FAILURE'
+            currentBuild.result = 'FAILURE'
+            echo "Initial build failed: ${err}"
+          }
+        }
+      }
+    }
+
+    stage('Diagnostic Evidence') {
+      steps {
+        sh 'ci/jenkins/create-diagnostic-bundle.sh'
+        archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true, fingerprint: true
+        junit testResults: 'artifacts/**/*.xml', allowEmptyResults: true
+      }
+    }
+
+    stage('Human Approval for Rebuild') {
+      when {
+        expression { env.INITIAL_RESULT == 'FAILURE' && params.DIAGNOSTIC_REBUILD }
+      }
+      steps {
+        input message: 'Claude may have proposed a rebuild. Review the cited evidence and approve one controlled rebuild.',
+              ok: 'Approve Rebuild',
+              submitter: 'embedded-release-approvers'
+      }
+    }
+
+    stage('Approved Rebuild') {
+      when {
+        expression { env.INITIAL_RESULT == 'FAILURE' && params.DIAGNOSTIC_REBUILD }
+      }
+      steps {
+        script {
+          if (params.REBUILD_COMMIT?.trim()) {
+            sh '''
+              git fetch --all --tags --prune
+              git rev-parse --verify "${REBUILD_COMMIT}^{commit}"
+              git checkout --detach "${REBUILD_COMMIT}"
+            '''
+          }
+          sh 'scripts/build-image.sh'
+          sh 'scripts/run-qemu-tests.sh'
+          currentBuild.result = 'SUCCESS'
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      sh 'ci/jenkins/create-diagnostic-bundle.sh || true'
+      archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true, fingerprint: true
+      deleteDir()
+    }
+  }
+}

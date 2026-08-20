@@ -1,0 +1,13 @@
+devices:
+  - name: sensornode-qemu-01
+    ssh_port: 2221
+    app_port: 8081
+    cohort: canary
+  - name: sensornode-qemu-02
+    ssh_port: 2222
+    app_port: 8082
+    cohort: pilot
+  - name: sensornode-qemu-03
+    ssh_port: 2223
+    app_port: 8083
+    cohort: fleet

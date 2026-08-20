@@ -1,0 +1,14 @@
+- name: Provision TuskerBlueprint Embedded platform
+  hosts: embedded_platform
+  become: true
+  roles:
+    - common
+    - docker
+    - github_runner
+    - github_release_runner
+    - minio
+    - jenkins
+    - jenkins_agent
+    - mender
+    - qemu_fleet
+    - reverse_proxy

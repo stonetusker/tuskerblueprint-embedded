@@ -1,0 +1,18 @@
+header:
+  version: 14
+  includes:
+    - release.yml
+
+repos:
+  meta-mender:
+    url: https://github.com/mendersoftware/meta-mender.git
+    commit: scarthgap
+    layers:
+      meta-mender-core:
+      meta-mender-qemu:
+
+local_conf_header:
+  mender: |
+    require conf/mender-sensornode.inc
+    IMAGE_INSTALL:append = " mender-client sensornode-mender-config"
+    # The exact Mender image class and boot integration settings are locked after TEST-SPIKE-003.

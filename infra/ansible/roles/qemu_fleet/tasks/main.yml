@@ -1,0 +1,14 @@
+- name: Install QEMU fleet launcher
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../qemu-fleet/"
+    dest: "{{ project_root }}/qemu-fleet/"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: preserve
+
+- name: Install QEMU systemd template
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../qemu-fleet/systemd/sensornode-qemu@.service"
+    dest: /etc/systemd/system/sensornode-qemu@.service
+    mode: '0644'
+  notify: Reload systemd

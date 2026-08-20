@@ -1,0 +1,341 @@
+---
+id: IMPL-TREE-001
+title: Implementation Repository Tree
+status: Approved
+version: 0.2.0
+owner: Subeesh / Stonetusker Systems
+reviewers:
+  - Principal Embedded Engineer
+  - Platform Engineering
+created: 2026-07-20
+updated: 2026-07-20
+traces_to:
+  - GOV-007
+verified_by:
+  - TEST-DOC-001
+---
+
+# Implementation Repository Tree
+
+The tree below records the implementation-ready baseline before generated build outputs.
+
+```text
+.editorconfig
+    └── implementation.yml
+  └── pull_request_template.md
+    └── build-image.yml
+    └── docs.yml
+    └── nightly.yml
+    └── promote-mender.yml
+    └── pull-request.yml
+    └── release-candidate.yml
+.gitignore
+.markdownlint.yml
+.yamllint.yml
+CODEOWNERS
+CONTRIBUTING.md
+DOCUMENT_INDEX.md
+IMPLEMENTATION_MANIFEST.md
+LICENSE.md
+Makefile
+README.md
+REVIEW_REPORT.md
+SECURITY.md
+VERSION
+    └── .env.example
+    └── Makefile
+    └── README.md
+        └── main.go
+        └── main_test.go
+    └── go.mod
+    └── image-version
+  └── README.md
+    └── README.md
+    └── Jenkinsfile
+    └── README.md
+    └── create-diagnostic-bundle.sh
+      └── README.md
+  └── auto.conf.sample
+  └── bblayers.conf.sample
+  └── local.conf.sample
+  └── site.conf.sample
+    └── README.md
+    └── Dockerfile
+    └── README.md
+    └── kas-container-entrypoint
+    └── definition-of-done.md
+    └── definition-of-ready.md
+    └── development-lifecycle.md
+    └── document-control.md
+    └── glossary.md
+    └── project-charter.md
+    └── project-principles.md
+    └── project-scope.md
+    └── roles-and-responsibilities.md
+    └── specification-governance.md
+    └── business-objectives.md
+    └── buyer-value-proposition.md
+    └── consultancy-use-cases.md
+    └── success-metrics.md
+    └── target-industries.md
+    └── non-functional-requirements.md
+    └── product-definition.md
+    └── product-requirements.md
+    └── product-roadmap.md
+    └── release-strategy.md
+    └── sensornode-personas.md
+    └── ai-governance-requirements.md
+    └── build-requirements.md
+    └── ci-requirements.md
+    └── content-series-requirements.md
+    └── operations-requirements.md
+    └── ota-requirements.md
+    └── qemu-requirements.md
+    └── security-requirements.md
+    └── software-requirements.md
+    └── system-requirements.md
+    └── ai-diagnostics-architecture.md
+    └── architecture-overview.md
+    └── build-architecture.md
+    └── cache-architecture.md
+    └── ci-architecture.md
+    └── container-architecture.md
+    └── deployment-architecture.md
+    └── future-shared-platform.md
+    └── observability-architecture.md
+    └── ota-architecture.md
+    └── qemu-test-architecture.md
+    └── security-architecture.md
+    └── system-context.md
+    └── build-container.md
+    └── github-runner.md
+    └── jenkins-job.md
+    └── jenkins-mcp-integration.md
+    └── mender-client.md
+    └── mender-server.md
+    └── meta-sensornode-layer.md
+    └── minio-cache.md
+    └── qemu-fleet.md
+    └── qemu-harness.md
+    └── sensornode-application.md
+    └── sensornode-systemd-service.md
+    └── yocto-image.md
+    └── application-api.md
+    └── build-script-interface.md
+    └── cache-interface.md
+    └── device-identity-interface.md
+    └── health-check-interface.md
+    └── mcp-tool-contract.md
+    └── mender-artifact-interface.md
+    └── qemu-test-interface.md
+    └── release-metadata-schema.md
+    └── acceptance-test-plan.md
+    └── ai-diagnostics-tests.md
+    └── cache-benchmark-tests.md
+    └── evidence-policy.md
+    └── local-build-tests.md
+    └── ota-tests.md
+    └── qemu-smoke-tests.md
+    └── rollback-tests.md
+    └── security-tests.md
+    └── test-case-catalog.md
+    └── test-plan.md
+    └── verification-strategy.md
+    └── access-control.md
+    └── ai-security.md
+    └── artifact-signing.md
+    └── network-security.md
+    └── sbom-policy.md
+    └── secret-management.md
+    └── supply-chain-security.md
+    └── threat-model.md
+    └── vulnerability-management.md
+    └── backup-and-restore.md
+    └── cache-maintenance.md
+    └── certificate-management.md
+    └── environment-strategy.md
+    └── incident-response.md
+    └── jenkins-runbook.md
+    └── mender-runbook.md
+    └── operating-model.md
+    └── qemu-fleet-runbook.md
+    └── release-runbook.md
+    └── rollback-runbook.md
+    └── runner-runbook.md
+    └── ai-operating-principles.md
+    └── ai-permission-model.md
+    └── audit-requirements.md
+    └── diagnostic-response-format.md
+    └── human-approval-policy.md
+    └── prompt-injection-controls.md
+    └── tuskersquad-alignment.md
+    └── claims-validation.md
+    └── episode-01-build-comparison.md
+    └── episode-02-github-actions.md
+    └── episode-03-qemu-testing.md
+    └── episode-04-mender-ota.md
+    └── episode-05-rollback.md
+    └── episode-06-ai-diagnostics.md
+    └── recording-evidence-checklist.md
+    └── series-overview.md
+    └── ADR-001-yocto-release.md
+    └── ADR-002-qemuarm64-machine.md
+    └── ADR-003-application-language.md
+    └── ADR-004-kas-source-management.md
+    └── ADR-005-builder-container.md
+    └── ADR-006-minio-cache.md
+    └── ADR-007-standalone-infrastructure.md
+    └── ADR-008-mender-deployment.md
+    └── ADR-009-jenkins-mcp-integration.md
+    └── ADR-010-human-approval-control.md
+    └── README.md
+    └── episode-to-feature-matrix.md
+    └── release-traceability.md
+    └── requirement-traceability-matrix.md
+    └── test-coverage-matrix.md
+    └── assumptions.md
+    └── constraints.md
+    └── risk-register.md
+    └── technical-debt-register.md
+    └── README.md
+    └── ai-diagnostics-summary.md
+    └── build-benchmark-summary.md
+    └── ota-deployment-summary.md
+    └── qemu-test-summary.md
+    └── rollback-summary.md
+    └── security-verification-summary.md
+    └── build-and-cache-execution.md
+    └── ci-workflow-implementation.md
+    └── command-reference.md
+    └── compatibility-matrix.md
+    └── compatibility-spike-plan.md
+    └── go-application-implementation.md
+    └── implementation-overview.md
+    └── implementation-status.md
+    └── infrastructure-implementation.md
+    └── jenkins-ai-implementation.md
+    └── local-development-guide.md
+    └── mac-m3-development-guide.md
+    └── mender-ab-state-model.md
+    └── mender-implementation.md
+    └── qemu-testing-implementation.md
+    └── release-and-promotion-flow.md
+    └── repository-file-map.md
+    └── troubleshooting.md
+    └── vps8-deployment-guide.md
+    └── yocto-layer-implementation.md
+    └── yocto-layer-walkthrough.md
+  └── README.md
+    └── adr-template.md
+    └── architecture-spec-template.md
+    └── change-request-template.md
+    └── component-spec-template.md
+    └── evidence-template.md
+    └── interface-spec-template.md
+    └── requirement-template.md
+    └── risk-template.md
+    └── runbook-template.md
+    └── test-spec-template.md
+  └── README.md
+    └── ansible.cfg
+      └── all.yml
+        └── hosts.yml
+      └── site.yml
+    └── requirements.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+          └── main.yml
+      └── .env.example
+      └── docker-compose.yml
+      └── README.md
+      └── .env.example
+      └── bootstrap.sh
+      └── docker-compose.yml
+        └── release-evidence-write.json
+        └── yocto-cache-read.json
+        └── yocto-cache-write.json
+      └── .env.example
+      └── Caddyfile
+      └── docker-compose.yml
+    └── README.md
+  └── base.yml
+  └── broken-demo.yml
+  └── ci.yml
+  └── development.yml
+  └── mender.yml
+  └── release.yml
+  └── README.md
+    └── create-artifact.sh
+    └── device-rollback.md
+    └── pipeline-prevention.md
+    └── sensornode-health.sh
+  └── README.md
+      └── sensornode.conf
+    └── layer.conf
+    └── mender-sensornode.inc
+          └── sensornode.py
+      └── sensornode-image-broken.bb
+      └── sensornode-image-ci.bb
+      └── sensornode-image-dev.bb
+      └── sensornode-image-release.bb
+      └── sensornode-image.inc
+      └── packagegroup-sensornode.bb
+      └── sensornode-release.bb
+        └── ArtifactCommit_Enter_50_sensornode-health
+        └── mender-device-identity
+        └── mender.conf.in
+      └── sensornode-mender-config.bb
+        └── sensornode-healthcheck.sh
+        └── sensornode.env
+        └── sensornode.service
+      └── sensornode-app_0.1.0.bb
+pytest.ini
+  └── README.md
+    └── devices.example.yml
+    └── qemu-device.sh
+    └── wait-for-device.sh
+    └── sensornode-qemu@.service
+  └── benchmark-build.sh
+  └── build-image.sh
+  └── cache-sync.sh
+  └── check-shell-syntax.sh
+  └── collect-build-metadata.sh
+  └── collect-build-outputs.sh
+  └── create-mender-artifact.sh
+  └── create-mender-deployment.sh
+  └── generate-sbom.sh
+    └── common.sh
+  └── prepare-build.sh
+  └── run-qemu-tests.sh
+  └── run-release-qemu-tests.sh
+  └── sign-artifact.sh
+  └── test-sensornode-integration.sh
+  └── upload-mender-artifact.sh
+  └── verify-deployment.sh
+  └── README.md
+    └── conftest.py
+    └── test_health.py
+    └── test_sensor.py
+    └── test_version.py
+  └── fetch_candidate.py
+  └── generate_release_manifest.py
+  └── publish_candidate.py
+  └── redact_build_logs.py
+  └── render_benchmark_summary.py
+  └── requirements.txt
+  └── review_repository.py
+  └── validate_markdown_links.py
+  └── validate_repository_policy.py
+  └── validate_specs.py
+  └── validate_traceability.py
+  └── validate_workflows.py
+  └── validate_yaml.py
+```

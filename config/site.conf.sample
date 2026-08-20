@@ -1,0 +1,5 @@
+# Host or runner-specific locations; do not commit credentials.
+DL_DIR = "/var/cache/yocto/downloads"
+SSTATE_DIR = "/var/cache/yocto/sstate"
+BB_HASHSERVE = "auto"
+BB_SIGNATURE_HANDLER = "OEEquivHash"

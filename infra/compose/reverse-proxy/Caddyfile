@@ -1,0 +1,16 @@
+{
+  email {$ACME_EMAIL}
+  admin off
+}
+
+jenkins.{$BASE_DOMAIN} {
+  reverse_proxy 127.0.0.1:8088
+}
+
+minio.{$BASE_DOMAIN} {
+  reverse_proxy 127.0.0.1:9000
+}
+
+minio-console.{$BASE_DOMAIN} {
+  reverse_proxy 127.0.0.1:9001
+}

@@ -1,0 +1,19 @@
+name: Nightly Embedded Validation
+
+on:
+  schedule:
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    runs-on: [self-hosted, linux, x64, yocto]
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - run: KAS_FILE=kas/ci.yml IMAGE=sensornode-image-ci scripts/build-image.sh
+      - run: scripts/run-qemu-tests.sh
+      - run: python3 tools/review_repository.py --root . --report artifacts/nightly-review.md

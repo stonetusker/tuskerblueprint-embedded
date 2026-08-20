@@ -1,0 +1,11 @@
+POKY_BBLAYERS_CONF_VERSION = "2"
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+BBLAYERS ?= " \
+  /work/poky/meta \
+  /work/poky/meta-poky \
+  /work/meta-openembedded/meta-oe \
+  /work/meta-openembedded/meta-networking \
+  /work/meta-openembedded/meta-python \
+  /work/meta-sensornode \
+"

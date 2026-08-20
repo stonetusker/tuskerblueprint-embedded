@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+umask 0022
+mkdir -p "$HOME" /work/cache/downloads /work/cache/sstate /work/artifacts
+
+if [[ $# -eq 0 ]]; then
+  exec bash
+fi
+exec "$@"

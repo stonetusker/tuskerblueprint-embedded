@@ -1,0 +1,20 @@
+- name: Validate MinIO image pin
+  ansible.builtin.assert:
+    that: minio_image_tag != 'required'
+
+- name: Copy MinIO compose files
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../compose/minio/"
+    dest: "{{ project_data_root }}/minio/"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: preserve
+
+- name: Start MinIO
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_data_root }}/minio"
+    state: present
+  environment:
+    MINIO_IMAGE_TAG: "{{ minio_image_tag }}"
+    MINIO_ROOT_USER: "{{ vault_minio_root_user }}"
+    MINIO_ROOT_PASSWORD: "{{ vault_minio_root_password }}"

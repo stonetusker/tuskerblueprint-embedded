@@ -1,0 +1,31 @@
+- name: Install Jenkins agent runtime
+  ansible.builtin.apt:
+    name:
+      - openjdk-17-jre-headless
+    state: present
+
+- name: Create Jenkins agent user
+  ansible.builtin.user:
+    name: jenkins-agent
+    group: "{{ service_group }}"
+    groups: docker
+    append: true
+    create_home: true
+    shell: /bin/bash
+
+- name: Authorize Jenkins controller SSH key
+  ansible.posix.authorized_key:
+    user: jenkins-agent
+    key: "{{ vault_jenkins_agent_public_key }}"
+    state: present
+
+- name: Create Jenkins agent workspace and cache access
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: jenkins-agent
+    group: "{{ service_group }}"
+    mode: '0770'
+  loop:
+    - /home/jenkins-agent/workspace
+    - "{{ cache_root }}"

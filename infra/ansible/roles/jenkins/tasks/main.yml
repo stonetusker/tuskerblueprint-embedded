@@ -1,0 +1,18 @@
+- name: Validate Jenkins image pin
+  ansible.builtin.assert:
+    that: jenkins_image_tag != 'required'
+
+- name: Copy Jenkins compose files
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../compose/jenkins/"
+    dest: "{{ project_data_root }}/jenkins/"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: preserve
+
+- name: Start Jenkins
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_data_root }}/jenkins"
+    state: present
+  environment:
+    JENKINS_IMAGE_TAG: "{{ jenkins_image_tag }}"

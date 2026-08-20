@@ -1,0 +1,74 @@
+- name: Validate runner inputs
+  ansible.builtin.assert:
+    that:
+      - github_runner_version != 'required'
+      - github_runner_sha256 != 'required'
+      - github_runner_registration_token is defined
+    fail_msg: Pin runner version/checksum and provide a short-lived registration token.
+
+- name: Create runner directory
+  ansible.builtin.file:
+    path: "{{ project_data_root }}/github-runner"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0750'
+
+- name: Download runner
+  ansible.builtin.get_url:
+    url: "https://github.com/actions/runner/releases/download/v{{ github_runner_version }}/actions-runner-linux-{{ github_runner_arch }}-{{ github_runner_version }}.tar.gz"
+    dest: "{{ project_data_root }}/github-runner/runner.tar.gz"
+    checksum: "sha256:{{ github_runner_sha256 }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0640'
+
+- name: Extract runner
+  ansible.builtin.unarchive:
+    src: "{{ project_data_root }}/github-runner/runner.tar.gz"
+    dest: "{{ project_data_root }}/github-runner"
+    remote_src: true
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    creates: "{{ project_data_root }}/github-runner/config.sh"
+
+- name: Configure repository runner
+  become_user: "{{ service_user }}"
+  ansible.builtin.command:
+    argv:
+      - ./config.sh
+      - --url
+      - "{{ github_runner_repository }}"
+      - --token
+      - "{{ github_runner_registration_token }}"
+      - --name
+      - vps8-yocto-01
+      - --labels
+      - self-hosted,linux,x64,yocto
+      - --work
+      - _work
+      - --unattended
+      - --replace
+  args:
+    chdir: "{{ project_data_root }}/github-runner"
+    creates: "{{ project_data_root }}/github-runner/.runner"
+  no_log: true
+
+- name: Install runner systemd service
+  ansible.builtin.command:
+    argv:
+      - ./svc.sh
+      - install
+      - "{{ service_user }}"
+  args:
+    chdir: "{{ project_data_root }}/github-runner"
+    creates: /etc/systemd/system/actions.runner.stonetusker-systems-tuskerblueprint-embedded.vps8-yocto-01.service
+
+- name: Start runner service
+  ansible.builtin.command:
+    argv:
+      - ./svc.sh
+      - start
+  args:
+    chdir: "{{ project_data_root }}/github-runner"
+  changed_when: false

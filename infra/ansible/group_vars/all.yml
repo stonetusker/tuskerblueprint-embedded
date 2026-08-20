@@ -1,0 +1,23 @@
+project_root: /opt/tuskerblueprint-embedded
+project_data_root: /srv/tuskerblueprint-embedded
+cache_root: /srv/yocto-cache
+service_user: tusker
+service_group: tusker
+
+# These values are validated and pinned in the deployment inventory, not left as examples.
+github_runner_version: required
+github_runner_arch: x64
+
+github_runner_sha256: required
+github_runner_repository: https://github.com/stonetusker-systems/tuskerblueprint-embedded
+minio_image_tag: required
+jenkins_image_tag: required
+caddy_image_tag: required
+base_domain: required
+acme_email: required
+mender_bundle_url: required
+mender_bundle_sha256: required
+mender_artifact_url: required
+mender_artifact_sha256: required
+minio_client_url: required
+minio_client_sha256: required

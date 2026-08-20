@@ -1,0 +1,16 @@
+[Unit]
+Description=SensorNode QEMU Device %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/sensornode-fleet/%i.env
+ExecStart=/opt/tuskerblueprint-embedded/qemu-fleet/launch/qemu-device.sh
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

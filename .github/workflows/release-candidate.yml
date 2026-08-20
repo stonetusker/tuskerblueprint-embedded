@@ -1,0 +1,96 @@
+name: Create Signed Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic version
+        required: true
+      source_commit:
+        description: Full commit already validated on main
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firmware-release-candidate
+  cancel-in-progress: false
+
+jobs:
+  build-test:
+    runs-on: [self-hosted, linux, x64, yocto]
+    timeout-minutes: 300
+    env:
+      KAS_FILE: kas/mender.yml
+      IMAGE: sensornode-image-release
+      SENSORNODE_VERSION: ${{ inputs.version }}
+      CACHE_DIR: /srv/yocto-cache
+      ARTIFACT_DIR: ${{ github.workspace }}/artifacts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          fetch-depth: 0
+      - name: Validate release inputs
+        shell: bash
+        run: |
+          [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]]
+          [[ "${{ inputs.source_commit }}" =~ ^[0-9a-f]{40}$ ]]
+      - name: Verify commit belongs to main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "${{ inputs.source_commit }}" origin/main
+      - name: Prepare test environment
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r tools/requirements.txt
+      - name: Build Mender-capable image
+        run: scripts/build-image.sh
+      - name: Test exact release root filesystem in QEMU
+        run: scripts/run-release-qemu-tests.sh
+      - name: Collect Yocto SPDX SBOM
+        run: scripts/generate-sbom.sh
+      - name: Require exact Mender candidate
+        run: |
+          artifact="$(find artifacts/deploy/qemuarm64 -maxdepth 1 -type f -name '*.mender' -print -quit)"
+          test -n "$artifact"
+          cp "$artifact" artifacts/unsigned-candidate.mender
+          sha256sum artifacts/unsigned-candidate.mender > artifacts/unsigned-candidate.mender.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-sensornode-${{ inputs.version }}-${{ inputs.source_commit }}
+          path: artifacts/
+          retention-days: 7
+
+  sign-publish:
+    needs: build-test
+    environment: firmware-signing
+    runs-on: [self-hosted, linux, x64, release]
+    env:
+      SIGNING_KEY: /var/lib/tusker-release/mender-signing.pem
+      PATH: /var/lib/tusker-release/bin:/usr/local/bin:/usr/bin:/bin
+      MINIO_ALIAS: ${{ secrets.MINIO_ALIAS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: unsigned-sensornode-${{ inputs.version }}-${{ inputs.source_commit }}
+          path: artifacts
+      - name: Create isolated publication set
+        run: |
+          mkdir -p artifacts/publish
+          cp artifacts/unsigned-candidate.mender \
+            "artifacts/publish/sensornode-${{ inputs.version }}-${{ inputs.source_commit }}.mender"
+          test -f artifacts/release-manifest.json && cp artifacts/release-manifest.json artifacts/publish/ || true
+          test -d artifacts/sbom && cp -a artifacts/sbom artifacts/publish/ || true
+          test -d artifacts/release-qemu && cp -a artifacts/release-qemu artifacts/publish/ || true
+      - name: Sign exact candidate
+        env:
+          ARTIFACT: artifacts/publish/sensornode-${{ inputs.version }}-${{ inputs.source_commit }}.mender
+        run: scripts/sign-artifact.sh
+      - name: Publish immutable signed candidate
+        run: >-
+          python3 tools/publish_candidate.py
+          --artifact-root artifacts/publish
+          --destination "minio://release-evidence/${{ inputs.version }}/${{ inputs.source_commit }}"

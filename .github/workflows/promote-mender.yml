@@ -1,0 +1,39 @@
+name: Promote Candidate to Mender
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_uri:
+        required: true
+        description: Immutable candidate URI
+      expected_sha256:
+        required: true
+        description: Expected candidate checksum
+      artifact_name:
+        required: true
+      canary_device_ids:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    environment: firmware-production
+    runs-on: [self-hosted, linux, x64, release]
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/fetch_candidate.py --uri "${{ inputs.candidate_uri }}" --output artifacts/candidate.mender --sha256 "${{ inputs.expected_sha256 }}"
+      - name: Upload signed artifact
+        env:
+          ARTIFACT: artifacts/candidate.mender
+          MENDER_SERVER_URL: ${{ secrets.MENDER_SERVER_URL }}
+          MENDER_ACCESS_TOKEN: ${{ secrets.MENDER_ACCESS_TOKEN }}
+        run: scripts/upload-mender-artifact.sh
+      - name: Create canary deployment
+        env:
+          ARTIFACT_NAME: ${{ inputs.artifact_name }}
+          DEVICE_IDS: ${{ inputs.canary_device_ids }}
+          MENDER_SERVER_URL: ${{ secrets.MENDER_SERVER_URL }}
+          MENDER_ACCESS_TOKEN: ${{ secrets.MENDER_ACCESS_TOKEN }}
+        run: scripts/create-mender-deployment.sh

@@ -1,0 +1,16 @@
+services:
+  caddy:
+    image: caddy:${CADDY_IMAGE_TAG:?set CADDY_IMAGE_TAG}
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+      BASE_DOMAIN: ${BASE_DOMAIN:?set BASE_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,36 @@
+header:
+  version: 14
+
+machine: qemuarm64
+distro: sensornode
+target:
+  - sensornode-image-dev
+
+repos:
+  poky:
+    url: https://git.yoctoproject.org/poky
+    commit: scarthgap
+    layers:
+      meta:
+      meta-poky:
+      meta-yocto-bsp:
+  meta-openembedded:
+    url: https://github.com/openembedded/meta-openembedded.git
+    commit: scarthgap
+    layers:
+      meta-oe:
+      meta-networking:
+      meta-python:
+  meta-sensornode:
+    path: meta-sensornode
+
+local_conf_header:
+  common: |
+    CONF_VERSION = "2"
+    BB_NUMBER_THREADS ?= "8"
+    PARALLEL_MAKE ?= "-j 8"
+    DL_DIR ?= "${TOPDIR}/../cache/downloads"
+    SSTATE_DIR ?= "${TOPDIR}/../cache/sstate"
+    TMPDIR = "${TOPDIR}/tmp"
+    INHERIT += "buildstats"
+    USER_CLASSES ?= "buildstats"

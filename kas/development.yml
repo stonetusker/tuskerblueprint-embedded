@@ -1,0 +1,11 @@
+header:
+  version: 14
+  includes:
+    - base.yml
+
+target:
+  - sensornode-image-dev
+
+local_conf_header:
+  development: |
+    EXTRA_IMAGE_FEATURES:append = " debug-tweaks"

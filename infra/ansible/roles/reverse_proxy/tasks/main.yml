@@ -1,0 +1,39 @@
+- name: Create reverse proxy directory
+  ansible.builtin.file:
+    path: "{{ project_data_root }}/reverse-proxy"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0750'
+
+- name: Copy Caddyfile
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../compose/reverse-proxy/Caddyfile"
+    dest: "{{ project_data_root }}/reverse-proxy/Caddyfile"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0640'
+
+- name: Validate reverse proxy inputs
+  ansible.builtin.assert:
+    that:
+      - caddy_image_tag != 'required'
+      - base_domain != 'required'
+      - acme_email != 'required'
+
+- name: Copy reverse proxy compose file
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../compose/reverse-proxy/docker-compose.yml"
+    dest: "{{ project_data_root }}/reverse-proxy/docker-compose.yml"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0640'
+
+- name: Start reverse proxy
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_data_root }}/reverse-proxy"
+    state: present
+  environment:
+    CADDY_IMAGE_TAG: "{{ caddy_image_tag }}"
+    BASE_DOMAIN: "{{ base_domain }}"
+    ACME_EMAIL: "{{ acme_email }}"

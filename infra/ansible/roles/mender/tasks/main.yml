@@ -1,0 +1,23 @@
+- name: Validate Mender bundle inputs
+  ansible.builtin.assert:
+    that:
+      - mender_bundle_url != 'required'
+      - mender_bundle_sha256 != 'required'
+    fail_msg: A validated upstream Mender bundle URL and checksum are required.
+
+- name: Create Mender directory
+  ansible.builtin.file:
+    path: "{{ project_data_root }}/mender"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0750'
+
+- name: Download validated Mender bundle
+  ansible.builtin.get_url:
+    url: "{{ mender_bundle_url }}"
+    dest: "{{ project_data_root }}/mender/mender-bundle.tar.gz"
+    checksum: "sha256:{{ mender_bundle_sha256 }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0640'

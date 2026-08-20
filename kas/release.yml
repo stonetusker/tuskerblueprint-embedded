@@ -1,0 +1,17 @@
+header:
+  version: 14
+  includes:
+    - base.yml
+
+target:
+  - sensornode-image-release
+
+local_conf_header:
+  release: |
+    SENSORNODE_GIT_COMMIT = "${@d.getVar('GITHUB_SHA') or d.getVar('GIT_COMMIT') or 'unknown'}"
+    SENSORNODE_BUILD_NUMBER = "${@d.getVar('GITHUB_RUN_NUMBER') or d.getVar('BUILD_NUMBER') or 'local'}"
+    SENSORNODE_IMAGE_VERSION = "${@d.getVar('SENSORNODE_VERSION') or '0.2.0'}-${SENSORNODE_BUILD_NUMBER}-${SENSORNODE_GIT_COMMIT}"
+    INHERIT += "create-spdx"
+    SPDX_PRETTY = "1"
+    SPDX_INCLUDE_SOURCES = "0"
+    SPDX_ARCHIVE_PACKAGED = "0"

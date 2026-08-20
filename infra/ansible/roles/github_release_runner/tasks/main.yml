@@ -1,0 +1,113 @@
+- name: Validate release runner inputs
+  ansible.builtin.assert:
+    that:
+      - github_runner_version != 'required'
+      - github_runner_sha256 != 'required'
+      - github_release_runner_registration_token is defined
+      - mender_artifact_url != 'required'
+      - mender_artifact_sha256 != 'required'
+      - minio_client_url != 'required'
+      - minio_client_sha256 != 'required'
+      - vault_mender_signing_key is defined
+    fail_msg: Release runner versions, checksums, short-lived token, and signing key are required.
+
+- name: Create isolated release runner user
+  ansible.builtin.user:
+    name: release-runner
+    create_home: true
+    shell: /bin/bash
+
+- name: Create release runner directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: release-runner
+    group: release-runner
+    mode: '0700'
+  loop:
+    - /var/lib/tusker-release
+    - /var/lib/tusker-release/runner
+    - /var/lib/tusker-release/bin
+
+- name: Install Mender signing key
+  ansible.builtin.copy:
+    content: "{{ vault_mender_signing_key }}"
+    dest: /var/lib/tusker-release/mender-signing.pem
+    owner: release-runner
+    group: release-runner
+    mode: '0600'
+  no_log: true
+
+- name: Download verified mender-artifact binary
+  ansible.builtin.get_url:
+    url: "{{ mender_artifact_url }}"
+    dest: /var/lib/tusker-release/bin/mender-artifact
+    checksum: "sha256:{{ mender_artifact_sha256 }}"
+    owner: release-runner
+    group: release-runner
+    mode: '0750'
+
+- name: Download verified MinIO client binary
+  ansible.builtin.get_url:
+    url: "{{ minio_client_url }}"
+    dest: /var/lib/tusker-release/bin/mc
+    checksum: "sha256:{{ minio_client_sha256 }}"
+    owner: release-runner
+    group: release-runner
+    mode: '0750'
+
+- name: Download release runner archive
+  ansible.builtin.get_url:
+    url: "https://github.com/actions/runner/releases/download/v{{ github_runner_version }}/actions-runner-linux-{{ github_runner_arch }}-{{ github_runner_version }}.tar.gz"
+    dest: /var/lib/tusker-release/runner/runner.tar.gz
+    checksum: "sha256:{{ github_runner_sha256 }}"
+    owner: release-runner
+    group: release-runner
+    mode: '0600'
+
+- name: Extract release runner
+  ansible.builtin.unarchive:
+    src: /var/lib/tusker-release/runner/runner.tar.gz
+    dest: /var/lib/tusker-release/runner
+    remote_src: true
+    owner: release-runner
+    group: release-runner
+    creates: /var/lib/tusker-release/runner/config.sh
+
+- name: Configure isolated release runner
+  become_user: release-runner
+  ansible.builtin.command:
+    argv:
+      - ./config.sh
+      - --url
+      - "{{ github_runner_repository }}"
+      - --token
+      - "{{ github_release_runner_registration_token }}"
+      - --name
+      - vps8-release-01
+      - --labels
+      - self-hosted,linux,x64,release
+      - --work
+      - _work
+      - --unattended
+      - --replace
+  args:
+    chdir: /var/lib/tusker-release/runner
+    creates: /var/lib/tusker-release/runner/.runner
+  environment:
+    PATH: "/var/lib/tusker-release/bin:{{ ansible_env.PATH }}"
+  no_log: true
+
+- name: Install release runner service
+  ansible.builtin.command:
+    argv: [./svc.sh, install, release-runner]
+  args:
+    chdir: /var/lib/tusker-release/runner
+    creates: /etc/systemd/system/actions.runner.stonetusker-systems-tuskerblueprint-embedded.vps8-release-01.service
+
+- name: Start release runner service
+  ansible.builtin.command:
+    argv: [./svc.sh, start]
+  args:
+    chdir: /var/lib/tusker-release/runner
+  changed_when: false

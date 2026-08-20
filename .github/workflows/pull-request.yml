@@ -1,0 +1,44 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: app/sensornode/go.mod
+      - run: make app-test
+      - run: make app-build
+
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r tools/requirements.txt
+      - run: make docs-check python-check yaml-check shell-check
+
+  yocto-metadata:
+    if: github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'yocto-build')
+    runs-on: [self-hosted, linux, x64, yocto]
+    permissions:
+      contents: read
+    env:
+      CACHE_DIR: /srv/yocto-pr-cache/${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: KAS_FILE=kas/ci.yml IMAGE=sensornode-image-ci scripts/build-image.sh
+      - run: scripts/run-qemu-tests.sh

@@ -1,0 +1,7 @@
+{
+  "ServerURL": "@MENDER_SERVER_URL@",
+  "UpdatePollIntervalSeconds": 300,
+  "InventoryPollIntervalSeconds": 28800,
+  "RetryPollIntervalSeconds": 60,
+  "StateScriptTimeoutSeconds": 300
+}
