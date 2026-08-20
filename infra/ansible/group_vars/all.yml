@@ -6,7 +6,7 @@ service_group: tusker
 
 # These values are validated and pinned in the deployment inventory, not left as examples.
 github_runner_version: required
-github_runner_arch: x64
+github_runner_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'x64' }}"
 
 github_runner_sha256: required
 github_runner_repository: https://github.com/stonetusker-systems/tuskerblueprint-embedded
@@ -17,7 +17,10 @@ base_domain: required
 acme_email: required
 mender_bundle_url: required
 mender_bundle_sha256: required
+mender_bundle_compose_relative: required
 mender_artifact_url: required
 mender_artifact_sha256: required
+mender_cli_url: required
+mender_cli_sha256: required
 minio_client_url: required
 minio_client_sha256: required

@@ -26,7 +26,7 @@ def main() -> int:
         failures.append('Mender promotion lacks protected environment')
 
     release = (root / '.github/workflows/release-candidate.yml').read_text(encoding='utf-8')
-    if 'environment: firmware-signing' not in release or 'runs-on: [self-hosted, linux, x64, release]' not in release:
+    if 'environment: firmware-signing' not in release or 'runs-on: [self-hosted, linux, release]' not in release:
         failures.append('release signing is not isolated on the protected release runner')
 
     pr = (root / '.github/workflows/pull-request.yml').read_text(encoding='utf-8')

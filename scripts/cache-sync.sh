@@ -5,7 +5,15 @@ source "$(dirname "$0")/lib/common.sh"
 operation="${1:-}"
 [[ "$operation" == "pull" || "$operation" == "push" ]] || die "usage: $0 pull|push"
 require_command mc
-require_env MINIO_ALIAS
+if [[ -n "${MINIO_ENDPOINT:-}" ]]; then
+  require_env MINIO_ACCESS_KEY
+  require_env MINIO_SECRET_KEY
+  MINIO_ALIAS="${MINIO_ALIAS:-tusker}"
+  export MINIO_ALIAS
+  "$PROJECT_ROOT/scripts/configure-minio-client.sh"
+else
+  require_env MINIO_ALIAS
+fi
 require_env MINIO_DOWNLOADS_BUCKET
 require_env MINIO_SSTATE_BUCKET
 

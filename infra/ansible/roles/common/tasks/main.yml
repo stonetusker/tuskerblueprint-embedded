@@ -2,8 +2,8 @@
   ansible.builtin.assert:
     that:
       - ansible_architecture in ['x86_64', 'aarch64']
-      - ansible_memtotal_mb >= 16000
-    fail_msg: VPS8 must provide a supported architecture and at least 16 GiB RAM.
+      - ansible_memtotal_mb >= 8000
+    fail_msg: VPS8 must provide a supported architecture and at least 8 GiB RAM; 16 GiB or more is recommended for Yocto.
 
 - name: Install host packages
   ansible.builtin.apt:
@@ -47,3 +47,19 @@
     - "{{ cache_root }}"
     - "{{ cache_root }}/downloads"
     - "{{ cache_root }}/sstate"
+
+- name: Validate MinIO client pin
+  ansible.builtin.assert:
+    that:
+      - minio_client_url != 'required'
+      - minio_client_sha256 != 'required'
+    fail_msg: Pin the MinIO client URL and SHA-256 before provisioning.
+
+- name: Install verified MinIO client
+  ansible.builtin.get_url:
+    url: "{{ minio_client_url }}"
+    dest: /usr/local/bin/mc
+    checksum: "sha256:{{ minio_client_sha256 }}"
+    owner: root
+    group: root
+    mode: '0755'

@@ -14,5 +14,7 @@ repos:
 local_conf_header:
   mender: |
     require conf/mender-sensornode.inc
+    INHERIT += "mender-full"
     IMAGE_INSTALL:append = " mender-client sensornode-mender-config"
-    # The exact Mender image class and boot integration settings are locked after TEST-SPIKE-003.
+    # meta-mender-qemu supplies the target-specific boot integration. The compatibility
+    # spike must prove the selected locked meta-mender revision before release use.

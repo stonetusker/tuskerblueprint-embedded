@@ -6,12 +6,17 @@ BUILD_DIR ?= $(PROJECT_ROOT)/build
 KAS_FILE ?= kas/ci.yml
 IMAGE ?= sensornode-image-ci
 
-.PHONY: help setup validate docs-check app-fmt app-test app-build shell-check python-check yaml-check \
+.PHONY: help bootstrap doctor setup source-lock source-lock-check builder-image validate docs-check app-fmt app-test app-build shell-check python-check yaml-check \
         yocto-build qemu-test benchmark release-manifest review clean
 
 help:
 	@printf '%s\n' \
+	  'bootstrap         Prepare an Ubuntu 24.x host (requires sudo)' \
+	  'doctor            Validate Ubuntu 24 host readiness' \
 	  'setup             Install local Python validation dependencies' \
+	  'source-lock       Resolve Yocto/Mender branches to immutable commits' \
+	  'source-lock-check Validate committed immutable source lock' \
+	  'builder-image     Build the Yocto builder container' \
 	  'validate          Run repository validation suite' \
 	  'docs-check        Validate controlled Markdown and traceability' \
 	  'app-test          Run SensorNode Go tests' \
@@ -22,6 +27,21 @@ help:
 	  'release-manifest  Generate release manifest from build outputs' \
 	  'review            Run principal-engineer repository review' \
 	  'clean             Remove local generated outputs'
+
+bootstrap:
+	scripts/bootstrap-ubuntu24.sh
+
+doctor:
+	scripts/doctor-ubuntu24.sh
+
+source-lock: setup
+	.venv/bin/python tools/lock_sources.py --config kas/base.yml --config kas/mender.yml --output kas/source-lock.yml
+
+source-lock-check:
+	python3 tools/validate_source_lock.py kas/source-lock.yml --require-mender
+
+builder-image:
+	scripts/build-builder-image.sh
 
 setup:
 	python3 -m venv .venv
@@ -51,6 +71,8 @@ python-check:
 
 yaml-check:
 	python3 tools/validate_yaml.py
+	python3 tools/validate_yocto_layer.py
+	python3 tools/validate_ubuntu24_portability.py
 
 workflow-check:
 	python3 tools/validate_workflows.py

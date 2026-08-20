@@ -62,7 +62,7 @@
       - "{{ service_user }}"
   args:
     chdir: "{{ project_data_root }}/github-runner"
-    creates: /etc/systemd/system/actions.runner.stonetusker-systems-tuskerblueprint-embedded.vps8-yocto-01.service
+    creates: "{{ project_data_root }}/github-runner/.service"
 
 - name: Start runner service
   ansible.builtin.command:

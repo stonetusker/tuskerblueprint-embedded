@@ -1,6 +1,10 @@
 services:
   jenkins:
-    image: jenkins/jenkins:${JENKINS_IMAGE_TAG:?set JENKINS_IMAGE_TAG}
+    build:
+      context: ../../../containers/jenkins
+      args:
+        JENKINS_IMAGE_TAG: ${JENKINS_IMAGE_TAG:?set JENKINS_IMAGE_TAG}
+    image: tuskerblueprint/jenkins:${JENKINS_IMAGE_TAG:?set JENKINS_IMAGE_TAG}
     restart: unless-stopped
     user: 1000:1000
     ports:

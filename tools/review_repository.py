@@ -25,6 +25,8 @@ def main() -> int:
         command('Traceability', ['python3', 'tools/validate_traceability.py'], root),
         command('Markdown links', ['python3', 'tools/validate_markdown_links.py'], root),
         command('YAML syntax', ['python3', 'tools/validate_yaml.py'], root),
+        command('Yocto layer policy', ['python3', 'tools/validate_yocto_layer.py'], root),
+        command('Ubuntu 24 portability policy', ['python3', 'tools/validate_ubuntu24_portability.py'], root),
         command('GitHub workflow policy', ['python3', 'tools/validate_workflows.py'], root),
         command('Repository security policy', ['python3', 'tools/validate_repository_policy.py'], root),
         command('Python syntax', ['python3', '-m', 'compileall', '-q', 'tools', 'tests'], root),
@@ -36,19 +38,32 @@ def main() -> int:
     checks.append(('Shell executable permissions', not executable, '\n'.join(map(str, executable)) or 'all shell scripts executable'))
     native = [p for p in root.rglob('*') if p.is_file() and p.suffix in {'.bb', '.bbappend', '.conf', '.inc'}]
     checks.append(('Yocto layer assets', len(native) >= 10, f'{len(native)} native Yocto metadata files'))
+    release_workflow = (root / '.github/workflows/release-candidate.yml').read_text(encoding='utf-8')
+    source_lock_enforced = ('SOURCE_LOCK_CONFIG: kas/source-lock.yml' in release_workflow
+                            and 'validate_source_lock.py' in release_workflow)
+    checks.append(('Immutable source lock enforcement', source_lock_enforced,
+                   'release workflow requires kas/source-lock.yml and validates exact commits'))
+    jenkins_template = root / 'ci/jenkins/job-config/sensornode-diagnostic-build.xml.template'
+    try:
+        import xml.etree.ElementTree as ET
+        ET.fromstring(jenkins_template.read_text(encoding='utf-8').replace('__REPOSITORY_URL__', 'https://example.invalid/repo.git'))
+        xml_ok, xml_detail = True, 'Jenkins Pipeline job XML is well formed'
+    except Exception as exc:
+        xml_ok, xml_detail = False, str(exc)
+    checks.append(('Jenkins job XML', xml_ok, xml_detail))
     pass_all = all(ok for _, ok, _ in checks)
     rows='\n'.join(f"| {name} | {'Pass' if ok else 'Fail'} | {detail.replace(chr(10), '<br>')[:800]} |" for name,ok,detail in checks)
     report=f"""---
 id: REVIEW-002
 title: Implementation Repository Review
 status: {'Approved' if pass_all else 'In Review'}
-version: 0.2.0
+version: 0.3.0
 owner: Subeesh / Stonetusker Systems
 reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
-created: 2026-07-20
-updated: 2026-07-20
+created: 2026-08-14
+updated: 2026-08-14
 traces_to:
   - GOV-007
 verified_by:
@@ -67,7 +82,7 @@ verified_by:
 
 ## Engineering Review Boundaries
 
-The review validates repository structure, syntax, local application tests, traceability, permissions, and archive consistency. It cannot prove the complete Yocto build, Mender A/B update, Jenkins MCP plugin compatibility, or VPS8 deployment without network access and the target infrastructure. Those remain controlled Phase 0 and integration acceptance tests.
+The review validates repository structure, syntax, local application tests, traceability, permissions, and archive consistency. It cannot prove the complete network-fetched Yocto build, Mender A/B update, current Jenkins MCP plugin compatibility, or a live Ubuntu 24 deployment without network access and the target infrastructure. Ubuntu 24 portability is therefore statically validated here and must be exercised on the target host with `scripts/doctor-ubuntu24.sh`. Those remain controlled Phase 0 and integration acceptance tests.
 
 ## Review Time
 

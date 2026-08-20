@@ -3,15 +3,19 @@
     that:
       - mender_bundle_url != 'required'
       - mender_bundle_sha256 != 'required'
-    fail_msg: A validated upstream Mender bundle URL and checksum are required.
+      - mender_bundle_compose_relative != 'required'
+    fail_msg: Pin a validated upstream Mender bundle URL, checksum, and Compose path.
 
-- name: Create Mender directory
+- name: Create Mender directories
   ansible.builtin.file:
-    path: "{{ project_data_root }}/mender"
+    path: "{{ item }}"
     state: directory
     owner: "{{ service_user }}"
     group: "{{ service_group }}"
     mode: '0750'
+  loop:
+    - "{{ project_data_root }}/mender"
+    - "{{ project_data_root }}/mender/bundle"
 
 - name: Download validated Mender bundle
   ansible.builtin.get_url:
@@ -21,3 +25,61 @@
     owner: "{{ service_user }}"
     group: "{{ service_group }}"
     mode: '0640'
+
+- name: Extract Mender bundle
+  ansible.builtin.unarchive:
+    src: "{{ project_data_root }}/mender/mender-bundle.tar.gz"
+    dest: "{{ project_data_root }}/mender/bundle"
+    remote_src: true
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+
+- name: Install Mender deployment environment
+  ansible.builtin.copy:
+    content: "{{ vault_mender_env_text }}"
+    dest: "{{ project_data_root }}/mender/mender.env"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0600'
+  no_log: true
+
+- name: Validate selected Mender Compose file
+  ansible.builtin.stat:
+    path: "{{ project_data_root }}/mender/bundle/{{ mender_bundle_compose_relative }}"
+  register: mender_compose
+
+- name: Fail when the upstream bundle contract does not match
+  ansible.builtin.assert:
+    that: mender_compose.stat.exists
+    fail_msg: >-
+      The selected Mender bundle does not contain
+      {{ mender_bundle_compose_relative }}. Update the version-controlled
+      bundle contract before proceeding; do not guess a Compose topology.
+
+- name: Validate Mender Compose configuration
+  become_user: "{{ service_user }}"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - --env-file
+      - "{{ project_data_root }}/mender/mender.env"
+      - -f
+      - "{{ project_data_root }}/mender/bundle/{{ mender_bundle_compose_relative }}"
+      - config
+  changed_when: false
+
+- name: Start Mender services
+  become_user: "{{ service_user }}"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - --env-file
+      - "{{ project_data_root }}/mender/mender.env"
+      - -f
+      - "{{ project_data_root }}/mender/bundle/{{ mender_bundle_compose_relative }}"
+      - up
+      - -d
+  register: mender_up
+  changed_when: "'Started' in mender_up.stdout or 'Created' in mender_up.stdout"

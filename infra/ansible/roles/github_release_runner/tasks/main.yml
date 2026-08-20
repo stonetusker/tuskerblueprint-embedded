@@ -8,6 +8,8 @@
       - mender_artifact_sha256 != 'required'
       - minio_client_url != 'required'
       - minio_client_sha256 != 'required'
+      - mender_cli_url != 'required'
+      - mender_cli_sha256 != 'required'
       - vault_mender_signing_key is defined
     fail_msg: Release runner versions, checksums, short-lived token, and signing key are required.
 
@@ -52,6 +54,15 @@
     url: "{{ minio_client_url }}"
     dest: /var/lib/tusker-release/bin/mc
     checksum: "sha256:{{ minio_client_sha256 }}"
+    owner: release-runner
+    group: release-runner
+    mode: '0750'
+
+- name: Download verified Mender CLI binary
+  ansible.builtin.get_url:
+    url: "{{ mender_cli_url }}"
+    dest: /var/lib/tusker-release/bin/mender-cli
+    checksum: "sha256:{{ mender_cli_sha256 }}"
     owner: release-runner
     group: release-runner
     mode: '0750'
@@ -103,7 +114,7 @@
     argv: [./svc.sh, install, release-runner]
   args:
     chdir: /var/lib/tusker-release/runner
-    creates: /etc/systemd/system/actions.runner.stonetusker-systems-tuskerblueprint-embedded.vps8-release-01.service
+    creates: /var/lib/tusker-release/runner/.service
 
 - name: Start release runner service
   ansible.builtin.command:

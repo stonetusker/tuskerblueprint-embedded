@@ -23,4 +23,3 @@ EOF
 }
 
 FILES:${PN} = "${sysconfdir}/sensornode"
-CONFFILES:${PN} = "${sysconfdir}/sensornode/release.json"
