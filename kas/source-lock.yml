@@ -1,0 +1,9 @@
+header:
+  version: 14
+repos:
+  meta-mender:
+    commit: 720d1d1cb0c1efcfdab95dc91d1a8ad3d3943093
+  meta-openembedded:
+    commit: bec755063a8b5da65df626f5749496aadaa4f4bb
+  poky:
+    commit: 64e69ed23703f6358ec431d3f5f1f8483f974cae
