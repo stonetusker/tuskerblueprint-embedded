@@ -1,7 +1,5 @@
 header:
   version: 14
-  includes:
-    - release.yml
 
 repos:
   meta-mender:
@@ -9,12 +7,4 @@ repos:
     commit: scarthgap
     layers:
       meta-mender-core:
-      meta-mender-qemu:
-
-local_conf_header:
-  mender: |
-    require conf/mender-sensornode.inc
-    INHERIT += "mender-full"
-    IMAGE_INSTALL:append = " mender-client sensornode-mender-config"
-    # meta-mender-qemu supplies the target-specific boot integration. The compatibility
-    # spike must prove the selected locked meta-mender revision before release use.
+      meta-mender-demo:

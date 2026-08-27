@@ -1,7 +1,8 @@
 header:
   version: 14
   includes:
-    - base.yml
+    - kas/base.yml
+    - kas/mender.yml
 
 target:
   - sensornode-image-ci

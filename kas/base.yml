@@ -14,6 +14,7 @@ repos:
       meta:
       meta-poky:
       meta-yocto-bsp:
+
   meta-openembedded:
     url: https://github.com/openembedded/meta-openembedded.git
     commit: scarthgap
@@ -21,8 +22,11 @@ repos:
       meta-oe:
       meta-networking:
       meta-python:
+
   meta-sensornode:
-    path: meta-sensornode
+    path: .
+    layers:
+      meta-sensornode:
 
 local_conf_header:
   common: |
