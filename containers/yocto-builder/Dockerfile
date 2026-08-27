@@ -14,18 +14,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 -m pip install --break-system-packages --no-cache-dir "kas==${KAS_VERSION}" && \
     rm -rf /var/lib/apt/lists/*
 
-#RUN groupadd --gid ${GROUP_ID} builder && \
-#    useradd --uid ${USER_ID} --gid ${GROUP_ID} --create-home --shell /bin/bash builder && \
-#    mkdir -p /work /cache/downloads /cache/sstate /artifacts && \
-#    chown -R builder:builder /work /cache /artifacts
+RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+
+#RUN groupadd --gid ${GROUP_ID} ubuntu && \
+#    useradd --uid ${USER_ID} --gid ${GROUP_ID} --create-home --shell /bin/bash ubuntu && \
+USER ubuntu
+RUN sudo mkdir -p /work /cache/downloads /cache/sstate /artifacts && \
+    sudo chown -R ubuntu:ubuntu /work /cache /artifacts
 
 ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
-    USER=builder \
-    HOME=/home/builder
+    USER=ubuntu \
+    HOME=/home/ubuntu
 
 COPY --chmod=0755 kas-container-entrypoint /usr/local/bin/kas-container-entrypoint
 
-USER builder
+USER ubuntu
 WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/kas-container-entrypoint"]
