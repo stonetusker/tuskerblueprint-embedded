@@ -45,10 +45,12 @@ else
   login_user="${USER}"
 fi
 
+info "Ensure that Docker is installed on your machine"
+
 info "installing Ubuntu 24 host dependencies"
 "${SUDO[@]}" apt-get update
 "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  ansible-core ca-certificates curl docker.io git golang-go jq make openssh-client \
+  ansible-core ca-certificates curl git golang-go jq make openssh-client \
   python3 python3-pip python3-venv qemu-system-arm qemu-utils rsync shellcheck socat \
   unzip xz-utils zstd
 

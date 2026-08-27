@@ -9,7 +9,7 @@ uid="${BUILDER_UID:-$(id -u)}"
 gid="${BUILDER_GID:-$(id -g)}"
 kas_version="${KAS_VERSION:-4.5}"
 info "building $image for $(uname -m) with uid=$uid gid=$gid kas=$kas_version"
-docker build \
+docker build --progress=plain\
   --build-arg USER_ID="$uid" \
   --build-arg GROUP_ID="$gid" \
   --build-arg KAS_VERSION="$kas_version" \

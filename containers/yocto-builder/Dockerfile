@@ -14,10 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 -m pip install --break-system-packages --no-cache-dir "kas==${KAS_VERSION}" && \
     rm -rf /var/lib/apt/lists/*
 
-RUN groupadd --gid ${GROUP_ID} builder && \
-    useradd --uid ${USER_ID} --gid ${GROUP_ID} --create-home --shell /bin/bash builder && \
-    mkdir -p /work /cache/downloads /cache/sstate /artifacts && \
-    chown -R builder:builder /work /cache /artifacts
+#RUN groupadd --gid ${GROUP_ID} builder && \
+#    useradd --uid ${USER_ID} --gid ${GROUP_ID} --create-home --shell /bin/bash builder && \
+#    mkdir -p /work /cache/downloads /cache/sstate /artifacts && \
+#    chown -R builder:builder /work /cache /artifacts
 
 ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
