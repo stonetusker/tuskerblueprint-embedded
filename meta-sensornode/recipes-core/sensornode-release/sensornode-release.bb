@@ -1,25 +1,18 @@
-SUMMARY = "SensorNode immutable release identity"
-LICENSE = "CLOSED"
+SUMMARY = "Sensornode release metadata"
+DESCRIPTION = "Provides release and version metadata for the Sensornode OS image."
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-SENSORNODE_IMAGE_VERSION ?= "development"
-SENSORNODE_GIT_COMMIT ?= "unknown"
-SENSORNODE_BUILD_NUMBER ?= "local"
+INHIBIT_DEFAULT_DEPS = "1"
 
-S = "${WORKDIR}"
+do_compile[noexec] = "1"
 
 do_install() {
-    install -d ${D}${sysconfdir}/sensornode
-    printf '%s\n' '${SENSORNODE_IMAGE_VERSION}' > ${D}${sysconfdir}/sensornode/image-version
-    cat > ${D}${sysconfdir}/sensornode/release.json <<EOF
-{
-  "product": "SensorNode",
-  "image_version": "${SENSORNODE_IMAGE_VERSION}",
-  "git_commit": "${SENSORNODE_GIT_COMMIT}",
-  "build_number": "${SENSORNODE_BUILD_NUMBER}",
-  "machine": "${MACHINE}",
-  "distro": "${DISTRO}"
-}
-EOF
+    install -d ${D}${sysconfdir}
+    echo "IMAGE_VERSION=\"${SENSORNODE_IMAGE_VERSION}\"" > ${D}${sysconfdir}/sensornode-release
+    echo "GIT_COMMIT=\"${SENSORNODE_GIT_COMMIT}\"" >> ${D}${sysconfdir}/sensornode-release
+    echo "BUILD_NUMBER=\"${SENSORNODE_BUILD_NUMBER}\"" >> ${D}${sysconfdir}/sensornode-release
+    chmod 0644 ${D}${sysconfdir}/sensornode-release
 }
 
-FILES:${PN} = "${sysconfdir}/sensornode"
+FILES:${PN} += "${sysconfdir}/sensornode-release"
