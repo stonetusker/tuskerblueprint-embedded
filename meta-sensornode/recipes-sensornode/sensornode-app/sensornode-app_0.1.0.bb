@@ -20,6 +20,8 @@ SRC_URI = " \
 S = "${WORKDIR}"
 B = "${WORKDIR}"
 
+FAILURE_MODE ?= "none"
+
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_PACKAGE_STRIP = "1"
 
@@ -47,6 +49,7 @@ do_install() {
 
     install -d ${D}${sysconfdir}/default
     install -m 0644 ${WORKDIR}/sensornode.env ${D}${sysconfdir}/default/sensornode
+    sed -i -e "s/@FAILURE_MODE@/${FAILURE_MODE}/g" ${D}${sysconfdir}/default/sensornode
 }
 
 SYSTEMD_SERVICE:${PN} = "sensornode.service"
