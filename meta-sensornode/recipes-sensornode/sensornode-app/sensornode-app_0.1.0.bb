@@ -20,7 +20,6 @@ SRC_URI = " \
 S = "${WORKDIR}"
 B = "${WORKDIR}"
 
-# Inhibit standard GNU strip and debug split since Go handles its own symbols
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_PACKAGE_STRIP = "1"
 

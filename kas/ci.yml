@@ -14,3 +14,6 @@ local_conf_header:
     SENSORNODE_GIT_COMMIT = "${@d.getVar('GITHUB_SHA') or d.getVar('GIT_COMMIT') or 'unknown'}"
     SENSORNODE_BUILD_NUMBER = "${@d.getVar('GITHUB_RUN_NUMBER') or d.getVar('BUILD_NUMBER') or 'local'}"
     SENSORNODE_IMAGE_VERSION = "${@d.getVar('SENSORNODE_VERSION') or '0.3.0'}-${SENSORNODE_BUILD_NUMBER}-${SENSORNODE_GIT_COMMIT}"
+  testimage: |
+    TEST_RUNQEMUPARAMS = "slirp"
+    TEST_OVERALL_TIMEOUT = "600"

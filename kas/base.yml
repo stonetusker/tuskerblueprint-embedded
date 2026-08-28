@@ -38,3 +38,4 @@ local_conf_header:
     TMPDIR = "${TOPDIR}/tmp"
     INHERIT += "buildstats"
     USER_CLASSES ?= "buildstats"
+    BB_UNSHARE_NET = "0"

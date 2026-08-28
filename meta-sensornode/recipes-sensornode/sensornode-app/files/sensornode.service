@@ -1,30 +1,13 @@
 [Unit]
-Description=Stonetusker SensorNode Application
-After=network-online.target
-Wants=network-online.target
-StartLimitIntervalSec=60
-StartLimitBurst=5
+Description=Sensornode Telemetry Service
+After=network.target
 
 [Service]
 Type=simple
-User=sensornode
-Group=sensornode
-EnvironmentFile=-/etc/sensornode/sensornode.env
-ExecStart=/usr/bin/sensornode --listen 0.0.0.0:8080 --image-version-file /etc/sensornode/image-version
-ExecStartPost=/usr/libexec/sensornode/healthcheck --startup
-Restart=on-failure
-RestartSec=3
-TimeoutStartSec=30
-TimeoutStopSec=15
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-StateDirectory=sensornode
-RuntimeDirectory=sensornode
-ReadWritePaths=-/var/lib/sensornode -/run/sensornode
-CapabilityBoundingSet=
-AmbientCapabilities=
+EnvironmentFile=-/etc/default/sensornode
+ExecStart=/usr/bin/sensornode
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

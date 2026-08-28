@@ -23,13 +23,18 @@ if [[ -n "${SOURCE_LOCK_CONFIG:-}" ]]; then
 fi
 
 mkdir -p "$ARTIFACT_DIR/oeqa"
+
 info "running Yocto testimage for $IMAGE"
 
 if [[ "$USE_CONTAINER" == "1" ]]; then
   require_command docker
   docker run --rm --privileged \
+    --security-opt apparmor=unconfined \
+    --security-opt seccomp=unconfined \
     --user "$(id -u):$(id -g)" \
     -e HOME=/tmp/builder-home \
+    -e TERM=xterm \
+    -e PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     -e KAS_BUILD_DIR="$CONTAINER_BUILD_DIR" \
     -v "$PROJECT_ROOT:/work" \
     -v "$CACHE_DIR:/work/cache" \
@@ -39,6 +44,7 @@ else
   require_command kas
   (cd "$PROJECT_ROOT" && KAS_BUILD_DIR="$BUILD_DIR" kas shell "$KAS_CONFIG" -c "bitbake -c testimage $IMAGE")
 fi
+
 
 (cd "$PROJECT_ROOT" && find "$BUILD_RELATIVE" -path '*/log/oeqa/*' -type f -exec cp --parents {} "$ARTIFACT_DIR/oeqa" \;) 2>/dev/null || true
 info "QEMU runtime tests passed"
