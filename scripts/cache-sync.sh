@@ -1,30 +1,35 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
-source "$(dirname "$0")/lib/common.sh"
+set -euo pipefail
 
-operation="${1:-}"
-[[ "$operation" == "pull" || "$operation" == "push" ]] || die "usage: $0 pull|push"
-require_command mc
-if [[ -n "${MINIO_ENDPOINT:-}" ]]; then
-  require_env MINIO_ACCESS_KEY
-  require_env MINIO_SECRET_KEY
-  MINIO_ALIAS="${MINIO_ALIAS:-tusker}"
-  export MINIO_ALIAS
-  "$PROJECT_ROOT/scripts/configure-minio-client.sh"
-else
-  require_env MINIO_ALIAS
-fi
-require_env MINIO_DOWNLOADS_BUCKET
-require_env MINIO_SSTATE_BUCKET
+ACTION="${1:-pull}"
+MINIO_ALIAS="${MINIO_ALIAS:-tusker}"
+DL_BUCKET="${MINIO_DOWNLOADS_BUCKET:-yocto-downloads}"
+SSTATE_BUCKET="${MINIO_SSTATE_BUCKET:-yocto-sstate}"
 
-CACHE_DIR="${CACHE_DIR:-$PROJECT_ROOT/cache}"
-mkdir -p "$CACHE_DIR/downloads" "$CACHE_DIR/sstate"
+DL_DIR="${BUILD_DIR:-build}/downloads"
+SSTATE_DIR="${BUILD_DIR:-build}/sstate-cache"
 
-if [[ "$operation" == "pull" ]]; then
-  mc mirror --overwrite --remove=false "$MINIO_ALIAS/$MINIO_DOWNLOADS_BUCKET" "$CACHE_DIR/downloads" || warn "downloads cache pull failed"
-  mc mirror --overwrite --remove=false "$MINIO_ALIAS/$MINIO_SSTATE_BUCKET" "$CACHE_DIR/sstate" || warn "sstate cache pull failed"
-else
-  [[ "${CACHE_WRITE_ALLOWED:-0}" == "1" ]] || die "cache write is not authorized"
-  mc mirror --overwrite --remove=false "$CACHE_DIR/downloads" "$MINIO_ALIAS/$MINIO_DOWNLOADS_BUCKET"
-  mc mirror --overwrite --remove=false "$CACHE_DIR/sstate" "$MINIO_ALIAS/$MINIO_SSTATE_BUCKET"
-fi
+mkdir -p "${DL_DIR}" "${SSTATE_DIR}"
+
+case "${ACTION}" in
+  pull)
+    echo "[+] Pulling downloads and sstate cache from MinIO..."
+    mc mirror --quiet --exclude "*.lock" "${MINIO_ALIAS}/${DL_BUCKET}" "${DL_DIR}" || true
+    mc mirror --quiet --exclude "*.lock" "${MINIO_ALIAS}/${SSTATE_BUCKET}" "${SSTATE_DIR}" || true
+    ;;
+
+  push)
+    if [[ "${CACHE_WRITE_ALLOWED:-0}" != "1" ]]; then
+      echo "[!] CACHE_WRITE_ALLOWED is not set to 1. Skipping cache push."
+      exit 0
+    fi
+    echo "[+] Pushing build downloads and sstate cache to MinIO..."
+    mc mirror --quiet --exclude "*.lock" --exclude "*.done" "${DL_DIR}" "${MINIO_ALIAS}/${DL_BUCKET}"
+    mc mirror --quiet --exclude "*.lock" "${SSTATE_DIR}" "${MINIO_ALIAS}/${SSTATE_BUCKET}"
+    ;;
+
+  *)
+    echo "Usage: $0 {pull|push}" >&2
+    exit 1
+    ;;
+esac

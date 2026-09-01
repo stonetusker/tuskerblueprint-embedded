@@ -1,32 +1,48 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
-: "${MINIO_ENDPOINT:?set MINIO_ENDPOINT}"
-: "${MINIO_ROOT_USER:?set MINIO_ROOT_USER}"
-: "${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}"
-: "${MINIO_CACHE_READ_USER:?set MINIO_CACHE_READ_USER}"
-: "${MINIO_CACHE_READ_PASSWORD:?set MINIO_CACHE_READ_PASSWORD}"
-: "${MINIO_CACHE_WRITE_USER:?set MINIO_CACHE_WRITE_USER}"
-: "${MINIO_CACHE_WRITE_PASSWORD:?set MINIO_CACHE_WRITE_PASSWORD}"
-: "${MINIO_RELEASE_USER:?set MINIO_RELEASE_USER}"
-: "${MINIO_RELEASE_PASSWORD:?set MINIO_RELEASE_PASSWORD}"
-: "${MINIO_RELEASE_READ_USER:?set MINIO_RELEASE_READ_USER}"
-: "${MINIO_RELEASE_READ_PASSWORD:?set MINIO_RELEASE_READ_PASSWORD}"
-command -v mc >/dev/null 2>&1 || { echo 'mc is required' >&2; exit 1; }
-root="$(cd "$(dirname "$0")" && pwd)"
-mc alias set bootstrap "$MINIO_ENDPOINT" "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-for bucket in yocto-downloads yocto-sstate build-evidence release-evidence; do
-  mc mb --ignore-existing "bootstrap/$bucket"
+set -euo pipefail
+
+MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://127.0.0.1:9000}"
+BOOTSTRAP_ALIAS="local-admin"
+
+echo "[*] Waiting for MinIO endpoint at ${MINIO_ENDPOINT} to become healthy..."
+until curl -sf "${MINIO_ENDPOINT}/minio/health/live" > /dev/null 2>&1; do
+  sleep 2
 done
-for policy in yocto-cache-read yocto-cache-write release-evidence-write release-evidence-read; do
-  mc admin policy create bootstrap "$policy" "$root/policies/$policy.json"
+
+# Set up local admin alias
+mc alias set "${BOOTSTRAP_ALIAS}" "${MINIO_ENDPOINT}" "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" > /dev/null
+
+# 1. Create Buckets
+BUCKETS=("yocto-downloads" "yocto-sstate" "release-artifacts" "release-evidence")
+for b in "${BUCKETS[@]}"; do
+  if ! mc ls "${BOOTSTRAP_ALIAS}/${b}" > /dev/null 2>&1; then
+    echo "[+] Creating bucket: ${b}"
+    mc mb "${BOOTSTRAP_ALIAS}/${b}"
+  fi
 done
-mc admin user add bootstrap "$MINIO_CACHE_READ_USER" "$MINIO_CACHE_READ_PASSWORD"
-mc admin user add bootstrap "$MINIO_CACHE_WRITE_USER" "$MINIO_CACHE_WRITE_PASSWORD"
-mc admin user add bootstrap "$MINIO_RELEASE_USER" "$MINIO_RELEASE_PASSWORD"
-mc admin user add bootstrap "$MINIO_RELEASE_READ_USER" "$MINIO_RELEASE_READ_PASSWORD"
-mc admin policy attach bootstrap yocto-cache-read --user "$MINIO_CACHE_READ_USER"
-mc admin policy attach bootstrap yocto-cache-write --user "$MINIO_CACHE_WRITE_USER"
-mc admin policy attach bootstrap release-evidence-write --user "$MINIO_RELEASE_USER"
-mc admin policy attach bootstrap release-evidence-read --user "$MINIO_RELEASE_READ_USER"
-mc ilm rule add --expire-days 90 bootstrap/build-evidence || true
-printf 'MinIO buckets, users, and least-privilege policies are configured.\n'
+
+# 2. Add Policies
+POLICY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/policies" && pwd)"
+mc admin policy create "${BOOTSTRAP_ALIAS}" yocto-cache-write "${POLICY_DIR}/yocto-cache-write.json" || true
+mc admin policy create "${BOOTSTRAP_ALIAS}" yocto-cache-read "${POLICY_DIR}/yocto-cache-read.json" || true
+mc admin policy create "${BOOTSTRAP_ALIAS}" release-evidence-write "${POLICY_DIR}/release-evidence-write.json" || true
+mc admin policy create "${BOOTSTRAP_ALIAS}" release-evidence-read "${POLICY_DIR}/release-evidence-read.json" || true
+
+# 3. Create Identities & Attach Policies
+create_user() {
+  local user="$1" pass="$2" policy="$3"
+  mc admin user add "${BOOTSTRAP_ALIAS}" "${user}" "${pass}" || true
+  mc admin policy attach "${BOOTSTRAP_ALIAS}" "${policy}" --user "${user}"
+}
+
+create_user "${MINIO_CACHE_WRITE_USER}" "${MINIO_CACHE_WRITE_PASSWORD}" "yocto-cache-write"
+create_user "${MINIO_CACHE_READ_USER}" "${MINIO_CACHE_READ_PASSWORD}" "yocto-cache-read"
+create_user "${MINIO_RELEASE_WRITE_USER}" "${MINIO_RELEASE_WRITE_PASSWORD}" "release-evidence-write"
+create_user "${MINIO_RELEASE_READ_USER}" "${MINIO_RELEASE_READ_PASSWORD}" "release-evidence-read"
+
+# 4. Set Retention Policy (Expire stale sstate after 90 days)
+mc ilm rule add "${BOOTSTRAP_ALIAS}/yocto-sstate" --expire-days 90 || true
+
+# Clean up admin alias
+mc alias remove "${BOOTSTRAP_ALIAS}" > /dev/null
+echo "[+] MinIO bootstrap complete."
