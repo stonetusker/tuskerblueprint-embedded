@@ -6,8 +6,16 @@ MINIO_ALIAS="${MINIO_ALIAS:-tusker}"
 DL_BUCKET="${MINIO_DOWNLOADS_BUCKET:-yocto-downloads}"
 SSTATE_BUCKET="${MINIO_SSTATE_BUCKET:-yocto-sstate}"
 
-DL_DIR="${BUILD_DIR:-build}/downloads"
-SSTATE_DIR="${BUILD_DIR:-build}/sstate-cache"
+# Support both cache/ and build/ directory structures
+BASE_CACHE_DIR="${CACHE_DIR:-cache}"
+
+DL_DIR="${BASE_CACHE_DIR}/downloads"
+# Check if cache/sstate exists; otherwise fall back to cache/sstate-cache
+if [[ -d "${BASE_CACHE_DIR}/sstate" || ! -d "${BASE_CACHE_DIR}/sstate-cache" ]]; then
+  SSTATE_DIR="${BASE_CACHE_DIR}/sstate"
+else
+  SSTATE_DIR="${BASE_CACHE_DIR}/sstate-cache"
+fi
 
 mkdir -p "${DL_DIR}" "${SSTATE_DIR}"
 
