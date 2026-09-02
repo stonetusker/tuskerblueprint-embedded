@@ -32,6 +32,7 @@ if [[ "$USE_CONTAINER" == "1" ]]; then
     require_command docker
     docker run --rm \
       --user "$(id -u):$(id -g)" \
+      --add-host=host.docker.internal:host-gateway \
       -e HOME=/tmp/builder-home \
       -e GITHUB_SHA="${GITHUB_SHA:-}" \
       -e GITHUB_RUN_NUMBER="${GITHUB_RUN_NUMBER:-}" \

@@ -42,6 +42,12 @@ for b in "${BUCKETS[@]}"; do
   fi
 done
 
+# Allow BitBake to stream sstate and downloads without authentication
+echo "[*] Setting anonymous read permissions for build mirrors..."
+mc --no-color anonymous set download "${BOOTSTRAP_ALIAS}/yocto-sstate"
+mc --no-color anonymous set download "${BOOTSTRAP_ALIAS}/yocto-downloads"
+
+
 # 4. Create Policies
 POLICY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/policies" && pwd)"
 echo "[*] Registering IAM policies..."

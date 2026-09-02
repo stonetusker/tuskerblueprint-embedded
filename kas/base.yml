@@ -39,3 +39,15 @@ local_conf_header:
     INHERIT += "buildstats"
     USER_CLASSES ?= "buildstats"
     BB_UNSHARE_NET = "0"
+
+    # 1. On-demand pre-compiled task cache (falls back to local build if missing)
+    SSTATE_MIRRORS = "file://.* http://host.docker.internal:9000/yocto-sstate/PATH"
+    
+    # 2. On-demand source tarball cache (falls back to public Internet if missing)
+    PREMIRRORS:prepend = "\
+        git://.*/.*     http://host.docker.internal:9000/yocto-downloads/ \n \
+        ftp://.*/.*     http://host.docker.internal:9000/yocto-downloads/ \n \
+        http://.*/.*    http://host.docker.internal:9000/yocto-downloads/ \n \
+        https://.*/.*   http://host.docker.internal:9000/yocto-downloads/ \n"
+
+
