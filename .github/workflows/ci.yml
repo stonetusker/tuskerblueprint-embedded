@@ -1,0 +1,62 @@
+name: Yocto CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Sensornode Image
+    runs-on: self-hosted  # Use your self-hosted runner where MinIO is reachable
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify MinIO Cache Endpoint
+        run: |
+          echo "[*] Checking MinIO health..."
+          curl -sSf http://host.docker.internal:9000/minio/health/live > /dev/null || {
+            echo "[!] MinIO is unreachable. Builds will compile from scratch."
+          }
+
+      - name: Execute BitBake Build
+        run: |
+          # BitBake automatically streams pre-built tasks from MinIO via SSTATE_MIRRORS
+          ./scripts/build-image.sh
+
+      - name: Configure MinIO Client (Write Authentication)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT || 'http://127.0.0.1:9000' }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          echo "[*] Setting up MinIO credentials for cache sync..."
+          mc --no-color alias set tusker "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+
+      - name: Push Updated Cache to MinIO
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CACHE_WRITE_ALLOWED: "1"
+        run: |
+          echo "[*] Main branch build succeeded. Syncing new sstate and downloads to MinIO..."
+          ./scripts/cache-sync.sh push
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sensornode-build-outputs
+          path: |
+            artifacts/deploy/
+            artifacts/release/
+          if-no-files-found: warn
