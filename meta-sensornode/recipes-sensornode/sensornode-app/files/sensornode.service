@@ -8,6 +8,9 @@ EnvironmentFile=-/etc/default/sensornode
 ExecStart=/usr/bin/sensornode
 Restart=always
 RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+CapabilityBoundingSet=
 
 [Install]
 WantedBy=multi-user.target

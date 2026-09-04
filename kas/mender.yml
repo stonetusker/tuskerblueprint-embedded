@@ -8,3 +8,9 @@ repos:
     layers:
       meta-mender-core:
       meta-mender-demo:
+      meta-mender-qemu:
+
+local_conf_header:
+  mender: |
+    INHERIT += "mender-full"
+
