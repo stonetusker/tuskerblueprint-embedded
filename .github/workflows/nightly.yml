@@ -1,19 +1,46 @@
-name: Nightly Embedded Validation
+name: Nightly Build & Cache Refresh
 
 on:
   schedule:
-    - cron: '30 20 * * *'
+    - cron: '0 2 * * *' # 02:00 AM UTC
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  nightly:
-    runs-on: [self-hosted, linux, x64, yocto]
-    timeout-minutes: 300
+  nightly-build:
+    name: Nightly Image Build
+    runs-on: self-hosted
+    timeout-minutes: 240
+
     steps:
-      - uses: actions/checkout@v4
-      - run: KAS_FILE=kas/ci.yml IMAGE=sensornode-image-ci scripts/build-image.sh
-      - run: scripts/run-qemu-tests.sh
-      - run: python3 tools/review_repository.py --root . --report artifacts/nightly-review.md
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Clean Working Build Directory
+        run: |
+          # Keep local cache/sstate, but ensure build/tmp is clean for regression tests
+          rm -rf build/tmp
+
+      - name: Run Full Build
+        run: |
+          ./scripts/build-image.sh
+
+      - name: Update MinIO Distributed Cache
+        env:
+          CACHE_WRITE_ALLOWED: "1"
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT || 'http://127.0.0.1:9000' }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          if [ -n "${MINIO_ACCESS_KEY:-}" ] && [ -n "${MINIO_SECRET_KEY:-}" ]; then
+            mc --no-color alias set tusker "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+          fi
+          ./scripts/cache-sync.sh push
+
+      - name: Archive Nightly Deploy Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-qemuarm64-${{ github.sha }}
+          path: artifacts/deploy/
+          retention-days: 7

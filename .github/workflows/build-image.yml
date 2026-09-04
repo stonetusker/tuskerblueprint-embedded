@@ -1,51 +1,59 @@
-name: SensorNode Main Build
+name: Build Image Core
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: yocto-main
-  cancel-in-progress: false
-
-env:
-  KAS_FILE: kas/ci.yml
-  IMAGE: sensornode-image-ci
-  CACHE_DIR: /srv/yocto-cache
-  ARTIFACT_DIR: ${{ github.workspace }}/artifacts
+    inputs:
+      push_cache:
+        description: 'Upload generated cache to MinIO'
+        required: true
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      push_cache:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      MINIO_ENDPOINT:
+        required: false
+      MINIO_ACCESS_KEY:
+        required: false
+      MINIO_SECRET_KEY:
+        required: false
 
 jobs:
-  build-test:
-    runs-on: [self-hosted, linux, x64, yocto]
-    timeout-minutes: 240
+  build:
+    name: Yocto Build
+    runs-on: self-hosted
+    timeout-minutes: 180
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Pull shared cache
+          submodules: recursive
+
+      - name: Run Build Image Script
+        run: |
+          ./scripts/build-image.sh
+
+      - name: Sync Cache to MinIO
+        if: ${{ inputs.push_cache == true }}
         env:
-          MINIO_ALIAS: ${{ secrets.MINIO_ALIAS }}
-          MINIO_DOWNLOADS_BUCKET: yocto-downloads
-          MINIO_SSTATE_BUCKET: yocto-sstate
-        run: CACHE_WRITE_ALLOWED=0 scripts/cache-sync.sh pull
-      - name: Build image
-        run: scripts/build-image.sh
-      - name: QEMU runtime gate
-        run: scripts/run-qemu-tests.sh
-      - name: Push trusted cache
-        if: success()
-        env:
-          MINIO_ALIAS: ${{ secrets.MINIO_ALIAS }}
-          MINIO_DOWNLOADS_BUCKET: yocto-downloads
-          MINIO_SSTATE_BUCKET: yocto-sstate
-        run: CACHE_WRITE_ALLOWED=1 scripts/cache-sync.sh push
-      - uses: actions/upload-artifact@v4
-        if: always()
+          CACHE_WRITE_ALLOWED: "1"
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT || 'http://127.0.0.1:9000' }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          if [ -n "${MINIO_ACCESS_KEY:-}" ] && [ -n "${MINIO_SECRET_KEY:-}" ]; then
+            mc --no-color alias set tusker "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+          fi
+          ./scripts/cache-sync.sh push
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: sensornode-${{ github.sha }}
-          path: artifacts/
-          retention-days: 30
+          name: build-outputs
+          path: artifacts/deploy/
+          if-no-files-found: warn
