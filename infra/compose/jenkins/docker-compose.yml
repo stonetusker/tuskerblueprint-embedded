@@ -8,8 +8,8 @@ services:
     restart: unless-stopped
     user: 1000:1000
     ports:
-      - 127.0.0.1:8088:8080
-      - 127.0.0.1:50000:50000
+      - 8088:8080
+      - 50000:50000
     volumes:
       - jenkins-home:/var/jenkins_home
     healthcheck:

@@ -97,7 +97,7 @@ pipeline {
     always {
       sh 'ci/jenkins/create-diagnostic-bundle.sh || true'
       archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true, fingerprint: true
-      deleteDir()
+      //deleteDir()
     }
   }
 }

@@ -20,7 +20,7 @@ permissions:
 jobs:
   promote:
     environment: firmware-production
-    runs-on: [self-hosted, linux, x64, release]
+    runs-on: [self-hosted, linux, release]
     steps:
       - uses: actions/checkout@v4
       - run: python3 tools/fetch_candidate.py --uri "${{ inputs.candidate_uri }}" --output artifacts/candidate.mender --sha256 "${{ inputs.expected_sha256 }}"
