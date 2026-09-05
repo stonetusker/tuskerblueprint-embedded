@@ -25,13 +25,18 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout scm
-        sh '''
+        sh """ 
           git fetch --all --tags --prune
-          git rev-parse --verify "${SOURCE_COMMIT}^{commit}"
-          git checkout --detach "${SOURCE_COMMIT}"
-        '''
-      }
+          
+          # Try verifying locally, if that fails, try verifying with origin/ prefix
+          git rev-parse --verify "${SOURCE_COMMIT}^{commit}" || git rev-parse --verify "origin/${SOURCE_COMMIT}^{commit}"
+          
+          # Safely detach and checkout the commit or branch
+          git checkout --detach "${SOURCE_COMMIT}" || git checkout --detach "origin/${SOURCE_COMMIT}"
+        """
+      }   
     }
+  }
 
     stage('Validate') {
       steps { sh 'make docs-check app-test python-check shell-check' }
