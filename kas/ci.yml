@@ -15,7 +15,9 @@ local_conf_header:
     SENSORNODE_BUILD_NUMBER = "${@d.getVar('GITHUB_RUN_NUMBER') or d.getVar('BUILD_NUMBER') or 'local'}"
     SENSORNODE_IMAGE_VERSION = "${@d.getVar('SENSORNODE_VERSION') or '0.3.0'}-${SENSORNODE_BUILD_NUMBER}-${SENSORNODE_GIT_COMMIT}"
   hashserve: |
+    BB_SIGNATURE_HANDLER = "OEBasicHash"
     BB_HASHSERVE = ""
   testimage: |
     TEST_RUNQEMUPARAMS = "slirp"
     TEST_OVERALL_TIMEOUT = "600"
+
