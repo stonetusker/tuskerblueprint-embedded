@@ -11,6 +11,21 @@ import yaml
 REQUIRED = {"id", "title", "status", "version", "owner", "reviewers", "created", "updated", "traces_to", "verified_by"}
 ALLOWED_STATUS = {"Draft", "In Review", "Approved", "Implemented", "Verified", "Deprecated", "Superseded", "Proposed"}
 
+IGNORED_DIRS = {
+    ".actions-runner-trash",
+    ".git",
+    ".github",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "artifacts",
+    "build",
+    "cache",
+    "meta-mender",
+    "meta-openembedded",
+    "poky",
+}
+
 
 def parse(path: Path):
     text = path.read_text(encoding="utf-8")
@@ -42,11 +57,12 @@ def main() -> int:
     files = sorted(root.rglob("*.md"))
     processed = 0
     for path in files:
-        if any(part in {".git", ".venv", "build", ".pytest_cache", "__pycache__"} for part in path.parts) or ".github" in path.parts:
+        rel = path.relative_to(root)
+        # Skip external layers, build artifacts, caches, and any hidden directory trees
+        if any(part in IGNORED_DIRS or part.startswith(".") for part in rel.parts[:-1]):
             continue
         processed += 1
         metadata, _, errors = parse(path)
-        rel = path.relative_to(root)
         for error in errors:
             failures.append(f"{rel}: {error}")
         if metadata:
