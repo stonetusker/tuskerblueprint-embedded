@@ -17,6 +17,9 @@ else
   SSTATE_DIR="${BASE_CACHE_DIR}/sstate-cache"
 fi
 
+# Clean up any partial 0-byte artifacts or BitBake temporary locks before syncing
+find "${SSTATE_DIR:-cache/sstate}" -type f -empty -delete 2>/dev/null || true
+
 mkdir -p "${DL_DIR}" "${SSTATE_DIR}"
 
 case "${ACTION}" in
