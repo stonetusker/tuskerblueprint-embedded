@@ -14,7 +14,8 @@ local_conf_header:
   mender: |
     INHERIT += "mender-full"
     INIT_MANAGER = "systemd"
+    MENDER_ARTIFACT_NAME = "sensornode-0.3"
     RDEPENDS:packagegroup-core-boot:remove = "kernel-devicetree"
     MACHINE_ESSENTIAL_EXTRA_RDEPENDS:remove = "kernel-devicetree"
-
+    PACKAGECONFIG:remove:pn-mender = "version-inventory-script"
 
