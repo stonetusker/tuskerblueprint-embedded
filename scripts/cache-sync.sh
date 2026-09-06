@@ -22,8 +22,8 @@ mkdir -p "${DL_DIR}" "${SSTATE_DIR}"
 case "${ACTION}" in
   pull)
     echo "[+] Pulling downloads and sstate cache from MinIO..."
-    mc mirror --quiet --exclude "*.lock" "${MINIO_ALIAS}/${DL_BUCKET}" "${DL_DIR}" || true
-    mc mirror --quiet --exclude "*.lock" "${MINIO_ALIAS}/${SSTATE_BUCKET}" "${SSTATE_DIR}" || true
+    mc mirror --quiet --overwrite --exclude "*.lock" "${MINIO_ALIAS}/${DL_BUCKET}" "${DL_DIR}" || true
+    mc mirror --quiet --overwrite --exclude "*.lock" "${MINIO_ALIAS}/${SSTATE_BUCKET}" "${SSTATE_DIR}" || true
     ;;
 
   push)
@@ -32,8 +32,8 @@ case "${ACTION}" in
       exit 0
     fi
     echo "[+] Pushing build downloads and sstate cache to MinIO..."
-    mc mirror --quiet --exclude "*.lock" --exclude "*.done" "${DL_DIR}" "${MINIO_ALIAS}/${DL_BUCKET}"
-    mc mirror --quiet --exclude "*.lock" "${SSTATE_DIR}" "${MINIO_ALIAS}/${SSTATE_BUCKET}"
+    mc mirror --quiet --overwrite --exclude "*.lock" --exclude "*.done" "${DL_DIR}" "${MINIO_ALIAS}/${DL_BUCKET}"
+    mc mirror --quiet --overwrite --exclude "*.lock" "${SSTATE_DIR}" "${MINIO_ALIAS}/${SSTATE_BUCKET}"
     ;;
 
   *)
