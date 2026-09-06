@@ -9,11 +9,13 @@ target:
 
 local_conf_header:
   ci: |
-    BB_NUMBER_THREADS ?= "8"
-    PARALLEL_MAKE ?= "-j 8"
+    BB_NUMBER_THREADS ?= "6"
+    PARALLEL_MAKE ?= "-j 6"
     SENSORNODE_GIT_COMMIT = "${@d.getVar('GITHUB_SHA') or d.getVar('GIT_COMMIT') or 'unknown'}"
     SENSORNODE_BUILD_NUMBER = "${@d.getVar('GITHUB_RUN_NUMBER') or d.getVar('BUILD_NUMBER') or 'local'}"
     SENSORNODE_IMAGE_VERSION = "${@d.getVar('SENSORNODE_VERSION') or '0.3.0'}-${SENSORNODE_BUILD_NUMBER}-${SENSORNODE_GIT_COMMIT}"
+  hashserve: |
+    BB_HASHSERVE = ""
   testimage: |
     TEST_RUNQEMUPARAMS = "slirp"
     TEST_OVERALL_TIMEOUT = "600"
