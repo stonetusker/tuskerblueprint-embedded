@@ -17,10 +17,34 @@ jobs:
     timeout-minutes: 600
 
     steps:
+      - name: Pre-Checkout Instant Move & Background Trash
+        run: |
+          echo "[*] Preparing empty workspace for fast checkout..."
+          TRASH_BASE="${HOME}/.actions-runner-trash"
+          mkdir -p "${TRASH_BASE}"
+
+          # Terminate any lingering background rm workers from previously aborted runs
+          pkill -f "rm -rf .*actions-runner-trash" || true
+
+          # Create unique scratch folder on the same filesystem for instant metadata rename
+          RUN_TRASH="${TRASH_BASE}/trash-$(date +%s%N)"
+          mkdir -p "${RUN_TRASH}"
+
+          # Instantly move all contents (including dotfiles and .git) into trash
+          shopt -s dotglob nullglob
+          for item in *; do
+            mv "$item" "${RUN_TRASH}/"
+          done
+
+          # Purge trash in the background at idle CPU & I/O priority (never starves BitBake)
+          echo "[*] Spawning asynchronous background deletion..."
+          nohup nice -n 19 ionice -c 3 rm -rf "${TRASH_BASE}"/* > /dev/null 2>&1 &
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          clean: false
 
       - name: Pre-Build Validation
         run: |
@@ -83,4 +107,3 @@ jobs:
             artifacts/deploy/
             artifacts/release/
           if-no-files-found: warn
-
