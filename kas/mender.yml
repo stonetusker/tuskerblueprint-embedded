@@ -14,4 +14,7 @@ local_conf_header:
   mender: |
     INHERIT += "mender-full"
     INIT_MANAGER = "systemd"
+    RDEPENDS:packagegroup-core-boot:remove = "kernel-devicetree"
+    MACHINE_ESSENTIAL_EXTRA_RDEPENDS:remove = "kernel-devicetree"
+
 
