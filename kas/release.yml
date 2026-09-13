@@ -2,6 +2,7 @@ header:
   version: 14
   includes:
     - base.yml
+    - mender.yml
 
 target:
   - sensornode-image-release

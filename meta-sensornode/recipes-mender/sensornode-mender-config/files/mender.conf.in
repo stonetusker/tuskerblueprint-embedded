@@ -1,5 +1,6 @@
 {
   "ServerURL": "@MENDER_SERVER_URL@",
+  "ServerCertificate": "/etc/mender/server.crt",
   "UpdatePollIntervalSeconds": 300,
   "InventoryPollIntervalSeconds": 28800,
   "RetryPollIntervalSeconds": 60,
