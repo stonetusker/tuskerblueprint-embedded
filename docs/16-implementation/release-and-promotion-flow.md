@@ -21,7 +21,7 @@ verified_by:
 
 ## Build and Test
 
-The release-candidate workflow accepts a semantic version and full commit. It verifies that the commit is an ancestor of `origin/main`, builds with `kas/mender.yml`, and runs the exact release root filesystem in direct QEMU.
+The release-candidate workflow accepts a semantic version and full commit. It verifies that the commit is an ancestor of `origin/main`, builds with `kas/release.yml` (which composes `base.yml` and `mender.yml`), and runs the exact release root filesystem in direct QEMU.
 
 The release test does not substitute the debug-enabled CI image. It uses the release ext4 output and validates health, version, and sensor behavior over the forwarded application port.
 

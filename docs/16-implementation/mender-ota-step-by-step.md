@@ -31,12 +31,12 @@ MENDER_SERVER_URL=https://mender.example.com
 make source-lock-check
 SENSORNODE_VERSION=1.0.0 \
 SOURCE_LOCK_CONFIG=kas/source-lock.yml \
-KAS_FILE=kas/mender.yml \
+KAS_FILE=kas/release.yml \
 IMAGE=sensornode-image-release \
 scripts/build-image.sh
 ```
 
-`kas/mender.yml` includes `meta-mender-core`, `meta-mender-qemu`, `mender-full`, the client, and `sensornode-mender-config`.
+`kas/release.yml` composes `kas/base.yml` and `kas/mender.yml`, so the image gets `meta-mender-core`, `meta-mender-qemu`, `mender-full`, the client, `sensornode-mender-config`, and release-only SPDX generation. `kas/mender.yml` alone has no `machine`, `distro`, or `target` and cannot be built standalone.
 
 ## 3. Validate the exact release root filesystem
 

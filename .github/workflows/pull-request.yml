@@ -1,4 +1,4 @@
-name: Pull Request Verification
+name: Pull Request Validation
 
 on:
   pull_request:
@@ -7,39 +7,43 @@ on:
       - 'docs/**'
       - '**.md'
 
+permissions:
+  contents: read
+
 concurrency:
   group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Build & Verify Image
-    runs-on: self-hosted
-    timeout-minutes: 600
-
+  application:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          submodules: recursive
+          go-version-file: app/sensornode/go.mod
+      - run: make app-test
+      - run: make app-build
 
-      - name: Verify MinIO Availability
-        run: |
-          echo "[*] Checking MinIO streaming endpoint..."
-          curl -sSf http://host.docker.internal:9000/minio/health/live > /dev/null || {
-            echo "[!] MinIO endpoint not responding; BitBake will fall back to local/upstream."
-          }
-
-      - name: Execute BitBake Build
-        run: |
-          # Streams sstate and downloads anonymously via SSTATE_MIRRORS
-          ./scripts/build-image.sh
-
-      - name: Archive Test Artifacts
-        uses: actions/upload-artifact@v4
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          name: pr-${{ github.event.pull_request.number }}-artifacts
-          path: |
-            artifacts/deploy/
-          retention-days: 5
-          if-no-files-found: warn
+          python-version: '3.12'
+      - run: pip install -r tools/requirements.txt
+      - run: make docs-check python-check yaml-check shell-check
+
+  yocto-metadata:
+    if: github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'yocto-build')
+    runs-on: [self-hosted, linux, yocto]
+    timeout-minutes: 600
+    permissions:
+      contents: read
+    env:
+      CACHE_DIR: /srv/yocto-pr-cache/${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: KAS_FILE=kas/ci.yml IMAGE=sensornode-image-ci scripts/build-image.sh
+      - run: scripts/run-qemu-tests.sh
