@@ -186,6 +186,7 @@ verified_by:
 | `docs/16-implementation/external-version-pinning.md` | IMPL-PIN-001 | External Version and Checksum Pinning | Approved |
 | `docs/16-implementation/github-actions-step-by-step.md` | IMPL-GHA-001 | GitHub Actions Step by Step | Approved |
 | `docs/16-implementation/go-application-implementation.md` | IMPL-003 | SensorNode Go Application Implementation | Approved |
+| `docs/16-implementation/host-service-restart.md` | IMPL-SVC-001 | Host Service Restart After Reboot | Approved |
 | `docs/16-implementation/implementation-checklist.md` | IMPL-CHECK-001 | Project C Implementation Checklist | Approved |
 | `docs/16-implementation/implementation-overview.md` | IMPL-001 | Implementation Overview | Approved |
 | `docs/16-implementation/implementation-status.md` | IMPL-021 | Implementation Validation Status | Approved |
