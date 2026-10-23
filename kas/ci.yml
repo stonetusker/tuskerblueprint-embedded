@@ -14,6 +14,10 @@ local_conf_header:
     SENSORNODE_GIT_COMMIT = "${@d.getVar('GITHUB_SHA') or d.getVar('GIT_COMMIT') or 'unknown'}"
     SENSORNODE_BUILD_NUMBER = "${@d.getVar('GITHUB_RUN_NUMBER') or d.getVar('BUILD_NUMBER') or 'local'}"
     SENSORNODE_IMAGE_VERSION = "${@d.getVar('SENSORNODE_VERSION') or '0.3.0'}-${SENSORNODE_BUILD_NUMBER}-${SENSORNODE_GIT_COMMIT}"
+    # testimage boots the bare ext4 rootfs without the Mender partition table,
+    # so the boot and data mounts must not drop the CI image into emergency mode.
+    MENDER_BOOT_PART_FSTAB_OPTS = "defaults,sync,nofail,x-systemd.device-timeout=10s"
+    MENDER_DATA_PART_FSTAB_OPTS = "defaults,nofail,x-systemd.device-timeout=10s"
   hashserve: |
     BB_SIGNATURE_HANDLER = "OEBasicHash"
     BB_HASHSERVE = ""

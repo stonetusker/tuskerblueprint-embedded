@@ -321,10 +321,10 @@ meta-sensornode/recipes-core/images/sensornode-image-release.bb
 meta-sensornode/recipes-core/images/sensornode-image.inc
 meta-sensornode/recipes-core/packagegroups/packagegroup-sensornode.bb
 meta-sensornode/recipes-core/sensornode-release/sensornode-release.bb
-meta-sensornode/recipes-mender/sensornode-mender-config/files/ArtifactCommit_Enter_50_sensornode-health
-meta-sensornode/recipes-mender/sensornode-mender-config/files/mender-device-identity
-meta-sensornode/recipes-mender/sensornode-mender-config/files/mender.conf.in
-meta-sensornode/recipes-mender/sensornode-mender-config/sensornode-mender-config.bb
+meta-sensornode/dynamic-layers/mender/recipes-mender/mender/files/mender-device-identity
+meta-sensornode/dynamic-layers/mender/recipes-mender/mender/mender_%.bbappend
+meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/files/ArtifactCommit_Enter_50_sensornode-health
+meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/sensornode-mender-config.bb
 meta-sensornode/recipes-sensornode/sensornode-app/files/sensornode-healthcheck.sh
 meta-sensornode/recipes-sensornode/sensornode-app/files/sensornode.env
 meta-sensornode/recipes-sensornode/sensornode-app/files/sensornode.service

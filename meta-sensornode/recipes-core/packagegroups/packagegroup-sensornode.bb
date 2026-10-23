@@ -8,6 +8,7 @@ inherit packagegroup
 RDEPENDS:${PN} = " \
     sensornode-app \
     sensornode-release \
+    sensornode-network \
     ca-certificates \
     curl \
     iproute2 \

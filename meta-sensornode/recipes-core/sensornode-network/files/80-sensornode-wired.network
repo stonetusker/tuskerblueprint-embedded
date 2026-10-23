@@ -1,0 +1,7 @@
+# Wired uplink for SensorNode: DHCP on any Ethernet interface, whatever its
+# predictable name (eth0 on direct QEMU boot, enp0s2 under UEFI/PCI).
+[Match]
+Type=ether
+
+[Network]
+DHCP=yes

@@ -26,4 +26,4 @@ verified_by:
 6. Confirm the wider cohort is not started.
 7. Retain deployment, device, serial, and application evidence.
 
-The exact state-script name and bootloader behavior must be validated against the locked Mender version during Phase 0.
+`run-ota-e2e.sh` in this directory automates the scenario on one QEMU canary (healthy candidate first, then `sensornode-image-release-broken`). With the locked `meta-mender` (client 5.1.0, GRUB on UEFI), the gate is `ArtifactCommit_Enter_50_sensornode-health`; a non-zero exit refuses the commit and GRUB boots the previous slot. See `docs/15-evidence/rollback-summary.md`.

@@ -51,7 +51,7 @@ info "installing Ubuntu 24 host dependencies"
 "${SUDO[@]}" apt-get update
 "${SUDO[@]}" env DEBIAN_FRONTEND=noninteractive apt-get install -y \
   ansible-core ca-certificates curl git golang-go jq make openssh-client \
-  python3 python3-pip python3-venv qemu-system-arm qemu-utils rsync shellcheck socat \
+  python3 python3-pip python3-venv qemu-system-arm qemu-efi-aarch64 qemu-utils rsync shellcheck socat \
   unzip xz-utils zstd mc
 
 # Ubuntu 24.04 uses docker-compose-v2 in the standard archive. Keep a fallback

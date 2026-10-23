@@ -1,0 +1,23 @@
+#!/bin/sh
+# Runs from the new root filesystem after the update reboot. A non-zero exit
+# makes Mender roll back to the previous root filesystem instead of committing.
+set -u
+
+timeout="${SENSORNODE_COMMIT_TIMEOUT:-120}"
+elapsed=0
+while [ "$elapsed" -lt "$timeout" ]; do
+    if systemctl is-active --quiet sensornode.service &&
+        curl --fail --silent --max-time 5 http://127.0.0.1:8080/health >/dev/null; then
+        failed="$(systemctl --failed --no-legend --plain || true)"
+        if [ -z "$failed" ]; then
+            exit 0
+        fi
+        printf 'failed units:\n%s\n' "$failed" >&2
+    fi
+    sleep 5
+    elapsed=$((elapsed + 5))
+done
+
+echo "sensornode health gate failed after ${timeout}s; refusing commit" >&2
+systemctl status sensornode.service --no-pager >&2 || true
+exit 1

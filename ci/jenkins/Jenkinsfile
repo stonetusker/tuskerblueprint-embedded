@@ -12,11 +12,12 @@ pipeline {
     string(name: 'SOURCE_COMMIT', defaultValue: 'main', description: 'Commit or branch to diagnose')
     string(name: 'REBUILD_COMMIT', defaultValue: '', description: 'Optional reviewed commit for an approved rebuild')
     booleanParam(name: 'DIAGNOSTIC_REBUILD', defaultValue: false, description: 'Permit the approval stage to offer a rebuild')
+    booleanParam(name: 'FAILURE_DRILL', defaultValue: false, description: 'Build sensornode-image-broken first to produce a controlled, diagnosable failure')
   }
 
   environment {
     KAS_FILE = 'kas/ci.yml'
-    IMAGE = 'sensornode-image-ci'
+    IMAGE = "${params.FAILURE_DRILL ? 'sensornode-image-broken' : 'sensornode-image-ci'}"
     CACHE_DIR = "${HOME}/yocto-cache"
     ARTIFACT_DIR = "${WORKSPACE}/artifacts"
   }
@@ -87,8 +88,11 @@ pipeline {
               git checkout --detach "${REBUILD_COMMIT}"
             '''
           }
-          sh 'scripts/build-image.sh'
-          sh 'scripts/run-qemu-tests.sh'
+          // The approved rebuild always targets the healthy CI image.
+          withEnv(['IMAGE=sensornode-image-ci']) {
+            sh 'scripts/build-image.sh'
+            sh 'scripts/run-qemu-tests.sh'
+          }
           currentBuild.result = 'SUCCESS'
         }
       }

@@ -1,0 +1,9 @@
+header:
+  version: 14
+
+# Overlay for the clean benchmark case: no shared sstate or download mirror,
+# so every task executes and every source is fetched from upstream.
+local_conf_header:
+  zz-benchmark-clean: |
+    SSTATE_MIRRORS = ""
+    SENSORNODE_PREMIRRORS = ""

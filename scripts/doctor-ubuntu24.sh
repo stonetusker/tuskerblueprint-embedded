@@ -33,6 +33,8 @@ esac
 for cmd in git curl jq make python3 docker qemu-system-aarch64 qemu-img rsync sha256sum; do
   command -v "$cmd" >/dev/null 2>&1 && pass "command $cmd" || failure "missing command $cmd"
 done
+# Mender disk images boot through UEFI in qemu-fleet/launch/qemu-device.sh.
+[[ -f /usr/share/qemu-efi-aarch64/QEMU_EFI.fd ]] && pass "AArch64 UEFI firmware" || failure "missing qemu-efi-aarch64 firmware"
 
 if command -v go >/dev/null 2>&1; then
   pass "Go $(go version | awk '{print $3}')"

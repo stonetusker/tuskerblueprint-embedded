@@ -10,22 +10,16 @@ APP_PORT="${APP_PORT:-18081}"
 SSH_PORT="${SSH_PORT:-12222}"
 DEVICE_NAME="${DEVICE_NAME:-sensornode-release-test}"
 
-if [[ -n "${KERNEL_IMAGE:-}" ]]; then
-  kernel="$KERNEL_IMAGE"
-elif [[ -e "$DEPLOY_DIR/Image" ]]; then
-  kernel="$(readlink -f "$DEPLOY_DIR/Image")"
+# The release candidate is the full Mender disk image; boot it through UEFI and
+# GRUB exactly as a device would, so partition layout and fstab are exercised.
+if [[ -n "${DISK_IMAGE:-}" ]]; then
+  disk="$DISK_IMAGE"
+elif [[ -e "$DEPLOY_DIR/${IMAGE}-qemuarm64.uefiimg" ]]; then
+  disk="$(readlink -f "$DEPLOY_DIR/${IMAGE}-qemuarm64.uefiimg")"
 else
-  kernel="$(find "$DEPLOY_DIR" -maxdepth 1 -type f -name 'Image-*' -print -quit)"
+  disk="$(find "$DEPLOY_DIR" -maxdepth 1 -type f -name "${IMAGE}-qemuarm64*.uefiimg" -print -quit)"
 fi
-if [[ -n "${ROOTFS_IMAGE:-}" ]]; then
-  rootfs="$ROOTFS_IMAGE"
-elif [[ -e "$DEPLOY_DIR/${IMAGE}-qemuarm64.rootfs.ext4" ]]; then
-  rootfs="$(readlink -f "$DEPLOY_DIR/${IMAGE}-qemuarm64.rootfs.ext4")"
-else
-  rootfs="$(find "$DEPLOY_DIR" -maxdepth 1 -type f -name "${IMAGE}-qemuarm64*.ext4" -print -quit)"
-fi
-require_file "$kernel"
-require_file "$rootfs"
+require_file "$disk"
 require_command qemu-system-aarch64
 if [[ -x "$PROJECT_ROOT/.venv/bin/pytest" ]]; then
   PYTEST_BIN="$PROJECT_ROOT/.venv/bin/pytest"
@@ -35,7 +29,7 @@ else
 fi
 
 mkdir -p "$ARTIFACT_DIR/release-qemu"
-export DEVICE_NAME KERNEL_IMAGE="$kernel" ROOTFS_IMAGE="$rootfs" APP_PORT SSH_PORT
+export DEVICE_NAME DISK_IMAGE="$disk" RESET_DISK=1 APP_PORT SSH_PORT
 "$PROJECT_ROOT/qemu-fleet/launch/qemu-device.sh" >"$ARTIFACT_DIR/release-qemu/qemu.stdout.log" 2>"$ARTIFACT_DIR/release-qemu/qemu.stderr.log" &
 pid=$!
 cleanup() {
@@ -46,7 +40,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-DEVICE_HOST=127.0.0.1 APP_PORT="$APP_PORT" TIMEOUT_SECONDS=240 "$PROJECT_ROOT/qemu-fleet/launch/wait-for-device.sh"
-SENSORNODE_URL="http://127.0.0.1:$APP_PORT" "$PYTEST_BIN" -q -m integration "$PROJECT_ROOT/tests/qemu" \
+DEVICE_HOST=127.0.0.1 APP_PORT="$APP_PORT" TIMEOUT_SECONDS="${BOOT_TIMEOUT_SECONDS:-480}" "$PROJECT_ROOT/qemu-fleet/launch/wait-for-device.sh"
+SENSORNODE_URL="http://127.0.0.1:$APP_PORT" EXPECTED_DEVICE_ID="$DEVICE_NAME" "$PYTEST_BIN" -q -m integration "$PROJECT_ROOT/tests/qemu" \
   --junitxml="$ARTIFACT_DIR/release-qemu/junit.xml"
-info "release image passed direct QEMU tests"
+info "release disk image passed QEMU tests"

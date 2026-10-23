@@ -21,9 +21,9 @@ This catalog defines every stable test identifier referenced by the requirements
 
 | Test ID | Purpose | Traced Requirements | Status |
 |---|---|---|---|
-| TEST-SPIKE-001 | Build the selected Yocto baseline and pass OEQA. | ADR-001 | Planned |
+| TEST-SPIKE-001 | Build the selected Yocto baseline and pass OEQA. | ADR-001 | Executed 2026-10-23, in review (EVID-002) |
 | TEST-SPIKE-002 | Validate builder host resources, container behavior, and cache reuse. | ADR-005, ADR-006 | Planned |
-| TEST-SPIKE-003 | Prove Mender install, reboot, commit, and rollback on QEMU. | ADR-008 | Planned |
+| TEST-SPIKE-003 | Prove Mender install, reboot, commit, and rollback on QEMU. | ADR-008 | Executed 2026-10-23, in review (EVID-003, EVID-004) |
 | TEST-SPIKE-004 | Verify Jenkins MCP allowlist, audit, Claude access, and denied actions. | ADR-009 | Planned |
 | TEST-ACCEPT-001 | TEST-ACCEPT-001. | See traceability matrix | Planned |
 | TEST-AI-001 | Allow Claude to inspect Jenkins evidence and propose remediation through a constrained MCP integration. | AI-REQ-001, PRD-REQ-008 | Planned |
@@ -56,18 +56,18 @@ This catalog defines every stable test identifier referenced by the requirements
 | TEST-OPS-003 | Disk use, service health, and runner availability shall be monitored. | OPS-REQ-003 | Planned |
 | TEST-OPS-004 | Cache cleanup shall follow a documented retention policy. | OPS-REQ-004 | Planned |
 | TEST-OPS-005 | The runner shall clean ephemeral workspaces after jobs. | OPS-REQ-005 | Planned |
-| TEST-OTA-001 | Deliver a validated image to a QEMU device through Mender OTA. | OTA-REQ-001, PRD-REQ-005, SYS-REQ-005 | Planned |
-| TEST-OTA-002 | Deployment shall begin with a canary device. | OTA-REQ-003 | Planned |
-| TEST-OTA-003 | Post-boot health shall control update commit. | OTA-REQ-004 | Planned |
+| TEST-OTA-001 | Deliver a validated image to a QEMU device through Mender OTA. | OTA-REQ-001, PRD-REQ-005, SYS-REQ-005 | Executed 2026-10-23, in review (EVID-003) |
+| TEST-OTA-002 | Deployment shall begin with a canary device. | OTA-REQ-003 | Executed 2026-10-23, in review (EVID-003) |
+| TEST-OTA-003 | Post-boot health shall control update commit. | OTA-REQ-004 | Executed 2026-10-23, in review (EVID-003, EVID-004) |
 | TEST-PLAN-001 | TEST-PLAN-001. | See traceability matrix | Planned |
-| TEST-QEMU-001 | Validate every release candidate in headless QEMU before promotion. | PRD-REQ-004, QEMU-REQ-001, SYS-REQ-003 | Planned |
+| TEST-QEMU-001 | Validate every release candidate in headless QEMU before promotion. | PRD-REQ-004, QEMU-REQ-001, SYS-REQ-003 | Executed 2026-10-23, in review (EVID-002) |
 | TEST-QEMU-002 | The harness shall enforce startup and shutdown timeouts. | QEMU-REQ-002 | Planned |
-| TEST-QEMU-003 | Run the SensorNode application as a managed systemd service. | PRD-REQ-002, QEMU-REQ-003, SWE-REQ-002 | Planned |
+| TEST-QEMU-003 | Run the SensorNode application as a managed systemd service. | PRD-REQ-002, QEMU-REQ-003, SWE-REQ-002 | Executed 2026-10-23, in review (EVID-002) |
 | TEST-QEMU-004 | The system shall prevent promotion when mandatory QEMU validation fails. | QEMU-REQ-004, SYS-REQ-004 | Planned |
 | TEST-QEMU-005 | QEMU evidence shall include command line, serial log, test result, and image checksum. | QEMU-REQ-005 | Planned |
 | TEST-REL-001 | The system shall produce release metadata that identifies commit, layers, machine, image, builder, and checksums. | SYS-REQ-002 | Planned |
 | TEST-ROLLBACK-001 | Prevent a failed build or smoke test from creating an OTA deployment. | PRD-REQ-006, SYS-REQ-006 | Planned |
-| TEST-ROLLBACK-002 | Roll back an installed but unhealthy update to the last known good version. | OTA-REQ-005, PRD-REQ-007, SYS-REQ-007 | Planned |
+| TEST-ROLLBACK-002 | Roll back an installed but unhealthy update to the last known good version. | OTA-REQ-005, PRD-REQ-007, SYS-REQ-007 | Executed 2026-10-23, in review (EVID-004) |
 | TEST-SEC-001 | The build shall fail on unpinned or checksum-invalid source inputs. | BLD-REQ-004 | Planned |
 | TEST-SEC-002 | The build shall emit an SPDX-compatible SBOM for release candidates. | BLD-REQ-005, SEC-REQ-003 | Planned |
 | TEST-SEC-003 | Untrusted pull requests shall not receive unrestricted cache-write or deployment credentials. | CI-REQ-004 | Planned |

@@ -12,3 +12,7 @@ def test_version(device_url):
     expected = os.getenv("EXPECTED_IMAGE_VERSION")
     if expected:
         assert body["image_version"] == expected
+    assert body["image_version"] != "unknown"
+    expected_device = os.getenv("EXPECTED_DEVICE_ID")
+    if expected_device:
+        assert body["device_id"] == expected_device

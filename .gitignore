@@ -52,3 +52,16 @@ reports/
 /tmp/
 *.venv*
 CHANGES.md
+
+# Yocto/kas working state (fetched layers, caches, outputs, QEMU device disks)
+/poky/
+/meta-openembedded/
+/meta-mender/
+/cache/
+/cache.old/
+/artifacts/
+/qemu-fleet/state/
+/.benchmark-*/
+
+# Host-local configuration (may hold tokens)
+/config/project.env
