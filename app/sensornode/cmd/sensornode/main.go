@@ -223,6 +223,12 @@ func defaultDeviceID() string {
 			}
 		}
 	}
+	// The QEMU fleet launcher sets a per-device SMBIOS serial when booting through UEFI.
+	if data, err := os.ReadFile("/sys/class/dmi/id/product_serial"); err == nil {
+		if value := strings.TrimSpace(string(data)); value != "" {
+			return value
+		}
+	}
 	return hostname()
 }
 

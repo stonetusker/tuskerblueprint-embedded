@@ -25,4 +25,12 @@ The virtual fleet follows COMP-011, the QEMU fleet runbook, and rollback tests.
 
 ## Mender Mode
 
-A/B OTA requires the validated meta-mender disk layout and boot integration. The compatibility spike will add a dedicated Mender fleet launcher after `TEST-SPIKE-003` proves install, reboot, commit, and rollback.
+Set `DISK_IMAGE` to a Mender `.uefiimg` instead of `KERNEL_IMAGE`/`ROOTFS_IMAGE`. The launcher boots it through UEFI firmware (`qemu-efi-aarch64`, `-machine virt,acpi=off`) and the Mender GRUB integration, so A/B install, commit, and rollback behave as on a device (`TEST-SPIKE-003`).
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `DISK_IMAGE` | — | Factory disk image; copied to `state/<name>/disk.img` on first launch |
+| `RESET_DISK` | `0` | `1` re-copies the factory image, discarding installed updates |
+| `QEMU_EFI_FIRMWARE` | `/usr/share/qemu-efi-aarch64/QEMU_EFI.fd` | UEFI firmware |
+
+The disk persists across launches because it holds the installed slot. Each device gets an SMBIOS serial equal to `DEVICE_NAME` (its SensorNode and Mender `device_id`) and a stable MAC derived from it.

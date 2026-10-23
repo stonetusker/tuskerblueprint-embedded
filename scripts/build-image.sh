@@ -21,6 +21,11 @@ if [[ -n "${SOURCE_LOCK_CONFIG:-}" ]]; then
     require_file "$PROJECT_ROOT/$SOURCE_LOCK_CONFIG"
     KAS_CONFIG="$KAS_FILE:$SOURCE_LOCK_CONFIG"
 fi
+# Optional overlay, e.g. kas/benchmark-clean.yml for the clean benchmark case.
+if [[ -n "${KAS_EXTRA_CONFIG:-}" ]]; then
+    require_file "$PROJECT_ROOT/$KAS_EXTRA_CONFIG"
+    KAS_CONFIG="$KAS_CONFIG:$KAS_EXTRA_CONFIG"
+fi
 
 require_file "$PROJECT_ROOT/$KAS_FILE"
 "$PROJECT_ROOT/scripts/prepare-build.sh"
@@ -47,10 +52,10 @@ if [[ "$USE_CONTAINER" == "1" ]]; then
       -v "$PROJECT_ROOT:/work" \
       -v "$CACHE_DIR:/work/cache" \
       -v "$ARTIFACT_DIR:/work/artifacts" \
-      "$BUILDER_IMAGE" kas build "$KAS_CONFIG"
+      "$BUILDER_IMAGE" kas build --target "$IMAGE" "$KAS_CONFIG"
 else
     require_command kas
-    (cd "$PROJECT_ROOT" && BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} GITHUB_SHA GITHUB_RUN_NUMBER GIT_COMMIT BUILD_NUMBER SENSORNODE_VERSION BB_NUMBER_THREADS PARALLEL_MAKE MENDER_SERVER_URL" KAS_BUILD_DIR="$BUILD_DIR" kas build "$KAS_CONFIG")
+    (cd "$PROJECT_ROOT" && BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} GITHUB_SHA GITHUB_RUN_NUMBER GIT_COMMIT BUILD_NUMBER SENSORNODE_VERSION BB_NUMBER_THREADS PARALLEL_MAKE MENDER_SERVER_URL" KAS_BUILD_DIR="$BUILD_DIR" kas build --target "$IMAGE" "$KAS_CONFIG")
 fi
 
 end="$(date +%s)"

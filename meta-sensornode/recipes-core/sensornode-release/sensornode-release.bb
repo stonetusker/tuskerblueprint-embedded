@@ -13,6 +13,10 @@ do_install() {
     echo "GIT_COMMIT=\"${SENSORNODE_GIT_COMMIT}\"" >> ${D}${sysconfdir}/sensornode-release
     echo "BUILD_NUMBER=\"${SENSORNODE_BUILD_NUMBER}\"" >> ${D}${sysconfdir}/sensornode-release
     chmod 0644 ${D}${sysconfdir}/sensornode-release
+    # Read by the SensorNode application for /health and /version.
+    install -d ${D}${sysconfdir}/sensornode
+    echo "${SENSORNODE_IMAGE_VERSION}" > ${D}${sysconfdir}/sensornode/image-version
+    chmod 0644 ${D}${sysconfdir}/sensornode/image-version
 }
 
-FILES:${PN} += "${sysconfdir}/sensornode-release"
+FILES:${PN} += "${sysconfdir}/sensornode-release ${sysconfdir}/sensornode/image-version"

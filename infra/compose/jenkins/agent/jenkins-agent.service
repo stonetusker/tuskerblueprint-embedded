@@ -1,0 +1,20 @@
+[Unit]
+Description=Jenkins inbound agent (ubuntu24, label yocto-vps8)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=subeesh
+Group=subeesh
+WorkingDirectory=/home/subeesh/jenkins
+# The agent secret stays in secret-file (mode 0600), never in this unit.
+ExecStart=/usr/bin/java -jar /home/subeesh/jenkins/agent.jar \
+  -url http://127.0.0.1:8088/ \
+  -secret @/home/subeesh/jenkins/secret-file \
+  -name ubuntu24 -webSocket -workDir /home/subeesh/jenkins
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -14,8 +14,15 @@ local_conf_header:
   mender: |
     INHERIT += "mender-full"
     INIT_MANAGER = "systemd"
-    MENDER_ARTIFACT_NAME = "sensornode-0.3"
+    # Unique per build so Mender never treats a new candidate as "already installed".
+    MENDER_ARTIFACT_NAME = "sensornode-${SENSORNODE_IMAGE_VERSION}"
+    MENDER_ARTIFACT_NAME:pn-sensornode-image-release-broken = "sensornode-${SENSORNODE_IMAGE_VERSION}-broken"
+    # QEMU virt exposes the disk as virtio-blk; meta-mender otherwise defaults to /dev/mmcblk0.
+    MENDER_STORAGE_DEVICE = "/dev/vda"
+    # QEMU user networking reaches the host-local Mender server through the slirp gateway.
+    MENDER_SERVER_URL = "https://docker.mender.io"
+    MENDER_DEMO_HOST_IP_ADDRESS = "10.0.2.2"
     RDEPENDS:packagegroup-core-boot:remove = "kernel-devicetree"
     MACHINE_ESSENTIAL_EXTRA_RDEPENDS:remove = "kernel-devicetree"
     PACKAGECONFIG:remove:pn-mender = "version-inventory-script"
-
+    IMAGE_INSTALL:append = " sensornode-mender-config"

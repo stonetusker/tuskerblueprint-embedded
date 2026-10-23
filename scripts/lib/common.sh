@@ -10,6 +10,16 @@ if [[ -f "$PROJECT_ROOT/config/project.env" ]]; then
     [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]] || continue
     key="${line%%=*}"
     value="${line#*=}"
+    # Accept shell-style quoting and a PROJECT_ROOT reference without eval.
+    if [[ "$value" =~ ^\"(.*)\"$ || "$value" =~ ^\'(.*)\'$ ]]; then
+      value="${BASH_REMATCH[1]}"
+    fi
+    value="${value//\$\{PROJECT_ROOT\}/$PROJECT_ROOT}"
+    value="${value//\$PROJECT_ROOT/$PROJECT_ROOT}"
+    # Relative *_DIR values (as in project.env.example) are relative to the repository.
+    if [[ "$key" == *_DIR && -n "$value" && "$value" != /* ]]; then
+      value="$PROJECT_ROOT/$value"
+    fi
     if [[ -z "${!key+x}" ]]; then
       printf -v "$key" "%s" "$value"
       export "$key"

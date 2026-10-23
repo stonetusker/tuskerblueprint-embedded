@@ -34,6 +34,7 @@ Docker itself (`systemctl is-enabled docker`) and the GitHub Actions runner serv
 | Jenkins (`infra/compose/jenkins`) | `unless-stopped` | Yes |
 | MinIO cache (`infra/compose/minio`) | `unless-stopped` | Yes |
 | GitHub Actions runner | systemd, `enabled` | Yes |
+| Jenkins agent `ubuntu24` (label `yocto-vps8`) | systemd `jenkins-agent.service`, `enabled` | Yes — installed from `infra/compose/jenkins/agent/jenkins-agent.service`; reads the secret from `/home/subeesh/jenkins/secret-file` |
 | Mender server (`~/mender/integration-3.8.5` + storage/override) | `on-failure` (from `common.yml`) | **No** — `on-failure` only restarts a crashed container while the daemon keeps running, not after the daemon/host restarts. This stack needs the manual step below every time. |
 | Reverse proxy (`infra/compose/reverse-proxy`) | `unless-stopped` | Not applicable today — not deployed; no `BASE_DOMAIN`/`ACME_EMAIL` configured. Only fronts Jenkins/MinIO on a public domain, not the Mender server itself. |
 
@@ -53,6 +54,15 @@ In short: after a reboot, only the Mender server needs a manual start. Give Jenk
 ssh subeesh@docker.mender.io
 docker ps --format 'table {{.Names}}\t{{.Status}}'
 systemctl is-active actions.runner.stonetusker-tuskerblueprint-embedded.subeesh-ubuntu24-laptop.service
+systemctl is-active jenkins-agent.service
+```
+
+If the agent unit is missing on a rebuilt host, install it once:
+
+```bash
+chmod 600 /home/subeesh/jenkins/secret-file
+sudo install -m 0644 infra/compose/jenkins/agent/jenkins-agent.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now jenkins-agent.service
 ```
 
 Expect `jenkins-jenkins-1` and `minio-minio-1` already `Up (healthy)`, and the runner `active`. If either compose service is missing, start it directly:
@@ -76,6 +86,8 @@ docker compose \
 This brings up all 14 Mender containers (`mongo`, `nats`, `useradm`, `device-auth`, `inventory`, `deployments`, `deviceconnect`, `deviceconfig`, `iot-manager`, `workflows-server`, `workflows-worker`, `create-artifact-worker`, the internal `minio` object store, `gui`, and `mender-api-gateway`). Mongo data is a persistent volume, so existing users, devices, and deployment history survive the restart — do not recreate the admin account; log in with the credentials already in use.
 
 Startup takes roughly 30–60 seconds for every service to report healthy.
+
+`docker-compose.override.yml` must keep `DEPLOYMENTS_AWS_EXTERNAL_URI: https://s3.docker.mender.io` on `mender-deployments`. Without it, presigned download URLs point at the Docker-internal `http://minio:9000` and every device download fails with `Host not found`.
 
 ## Verification
 

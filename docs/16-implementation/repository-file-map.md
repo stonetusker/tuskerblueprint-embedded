@@ -36,7 +36,7 @@ verified_by:
 | `meta-sensornode/recipes-core/sensornode-release/` | Image identity files |
 | `meta-sensornode/recipes-sensornode/sensornode-app/` | Application build, user, systemd unit, health script |
 | `meta-sensornode/lib/oeqa/runtime/cases/` | QEMU runtime test gate |
-| `meta-sensornode/recipes-mender/` | Mender client boundary and pre-commit health check |
+| `meta-sensornode/dynamic-layers/mender/` | Mender client boundary and pre-commit health check |
 | `kas/` | Reproducible source and build configurations |
 
 ## Delivery Automation

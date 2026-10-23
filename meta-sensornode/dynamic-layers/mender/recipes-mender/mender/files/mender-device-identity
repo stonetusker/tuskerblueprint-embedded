@@ -1,0 +1,23 @@
+#!/bin/sh
+# Identity must be identical on both A/B root filesystems, so machine-id is not used.
+set -eu
+for field in $(cat /proc/cmdline 2>/dev/null || true); do
+  case "$field" in
+    sensornode.device_id=*)
+      printf 'device_id=%s\n' "${field#sensornode.device_id=}"
+      exit 0
+      ;;
+  esac
+done
+# The QEMU fleet launcher sets a per-device SMBIOS serial.
+serial="$(cat /sys/class/dmi/id/product_serial 2>/dev/null || true)"
+if [ -n "$serial" ]; then
+  printf 'device_id=%s\n' "$serial"
+  exit 0
+fi
+for iface in /sys/class/net/*; do
+  [ "$(basename "$iface")" = lo ] && continue
+  printf 'mac=%s\n' "$(cat "$iface/address")"
+  exit 0
+done
+exit 1
