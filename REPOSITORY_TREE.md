@@ -217,6 +217,7 @@ docs/16-implementation/command-reference.md
 docs/16-implementation/compatibility-matrix.md
 docs/16-implementation/compatibility-spike-plan.md
 docs/16-implementation/complete-project-implementation-plan.md
+docs/16-implementation/demo-guide.md
 docs/16-implementation/end-to-end-acceptance.md
 docs/16-implementation/external-version-pinning.md
 docs/16-implementation/github-actions-step-by-step.md
@@ -347,6 +348,7 @@ scripts/configure-jenkins-job.sh
 scripts/configure-minio-client.sh
 scripts/create-mender-artifact.sh
 scripts/create-mender-deployment.sh
+scripts/demo-services-up.sh
 scripts/doctor-ubuntu24.sh
 scripts/generate-sbom.sh
 scripts/initialize-workspace.sh

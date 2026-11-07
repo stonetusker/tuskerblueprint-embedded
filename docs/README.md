@@ -48,3 +48,5 @@ Use these implementation guides in sequence:
 17. [End-to-End Acceptance Procedure](16-implementation/end-to-end-acceptance.md)
 18. [Ubuntu 24 Troubleshooting](16-implementation/ubuntu24-troubleshooting.md)
 19. [Implementation Checklist](16-implementation/implementation-checklist.md)
+20. [Host Service Restart After Reboot](16-implementation/host-service-restart.md)
+21. [Demo Guide](16-implementation/demo-guide.md)

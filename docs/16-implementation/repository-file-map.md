@@ -46,6 +46,7 @@ verified_by:
 | `scripts/build-image.sh` | Provider-independent Yocto build entry point |
 | `scripts/run-qemu-tests.sh` | CI image testimage/OEQA gate |
 | `scripts/run-release-qemu-tests.sh` | Exact release root filesystem test |
+| `scripts/demo-services-up.sh` | Start and verify all host services after a reboot |
 | `scripts/cache-sync.sh` | MinIO cache synchronization with trust control |
 | `scripts/collect-build-outputs.sh` | Immutable deploy-output collection and hashes |
 | `scripts/generate-sbom.sh` | SPDX evidence collection |

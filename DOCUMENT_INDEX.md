@@ -182,6 +182,7 @@ verified_by:
 | `docs/16-implementation/compatibility-matrix.md` | IMPL-013 | Compatibility Matrix | Draft |
 | `docs/16-implementation/compatibility-spike-plan.md` | IMPL-012 | Phase 0 Compatibility Spike Plan | Approved |
 | `docs/16-implementation/complete-project-implementation-plan.md` | IMPL-PLAN-001 | Complete Project Implementation Plan | Approved |
+| `docs/16-implementation/demo-guide.md` | IMPL-DEMO-001 | Demo Guide | Approved |
 | `docs/16-implementation/end-to-end-acceptance.md` | IMPL-ACCEPT-001 | End-to-End Acceptance Procedure | Approved |
 | `docs/16-implementation/external-version-pinning.md` | IMPL-PIN-001 | External Version and Checksum Pinning | Approved |
 | `docs/16-implementation/github-actions-step-by-step.md` | IMPL-GHA-001 | GitHub Actions Step by Step | Approved |
