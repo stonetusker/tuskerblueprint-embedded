@@ -28,6 +28,28 @@ if [[ -n "${KAS_EXTRA_CONFIG:-}" ]]; then
 fi
 
 require_file "$PROJECT_ROOT/$KAS_FILE"
+if [[ "$USE_CONTAINER" == "1" ]]; then
+    require_command docker
+    # Bind-mount targets inside PROJECT_ROOT must exist and be owned by us;
+    # otherwise dockerd creates them as root and the unprivileged build fails
+    # with "Cannot write to /work/build".
+    mkdir -p "$PROJECT_ROOT/cache" "$PROJECT_ROOT/artifacts"
+    ensure_writable() {
+        local dir="$1" owner
+        [[ -d "$dir" ]] || return 0
+        if [[ -w "$dir" ]] && [[ -z "$(find "$dir" -maxdepth 2 ! -user "$(id -u)" -print -quit 2>/dev/null)" ]]; then
+            return 0
+        fi
+        owner="$(stat -c '%u:%g' "$dir" 2>/dev/null || echo unknown)"
+        warn "$dir (owner $owner) is not owned by $(id -u):$(id -g); repairing ownership via $BUILDER_IMAGE"
+        docker run --rm --user 0:0 --entrypoint chown -v "$dir:/fix" "$BUILDER_IMAGE" \
+          -R "$(id -u):$(id -g)" /fix \
+          || die "cannot repair ownership of $dir; run: sudo chown -R $(id -u):$(id -g) $dir"
+    }
+    for d in "$BUILD_DIR" "$PROJECT_ROOT/cache" "$CACHE_DIR" "$ARTIFACT_DIR" "$PROJECT_ROOT/artifacts"; do
+        ensure_writable "$d"
+    done
+fi
 "$PROJECT_ROOT/scripts/prepare-build.sh"
 
 start="$(date +%s)"
