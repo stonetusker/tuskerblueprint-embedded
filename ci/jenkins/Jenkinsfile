@@ -20,13 +20,15 @@ pipeline {
     IMAGE = "${params.FAILURE_DRILL ? 'sensornode-image-broken' : 'sensornode-image-ci'}"
     CACHE_DIR = "${HOME}/yocto-cache"
     ARTIFACT_DIR = "${WORKSPACE}/artifacts"
+    PATH = "/usr/local/go/bin:${env.HOME}/go/bin:${env.PATH}"
   }
 
   stages {
     stage('Checkout') {
       steps {
         checkout scm
-        sh """ 
+        sh """
+          #!/bin/bash 
           git fetch --all --tags --prune
           
           git rev-parse --verify "${SOURCE_COMMIT}^{commit}" || git rev-parse --verify "origin/${SOURCE_COMMIT}^{commit}"
