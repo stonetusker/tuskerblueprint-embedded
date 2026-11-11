@@ -72,18 +72,43 @@ if (( backup )); then
   done
   info "Mender data backed up to $dest"
 fi
+mender_containers() { docker ps -a --format '{{.Names}}' | grep 'integration-385-' || true; }
+mender_state() {
+  mender_containers | xargs -r docker inspect --format '{{.Name}} {{.RestartCount}} {{.State.Status}}' | sed 's|^/||' | sort
+}
 if (( ! check_only )); then
   info "starting Mender server ($MENDER_BUNDLE)"
   mender_compose up -d >/dev/null 2>&1 || mender_compose up -d
+  # The bundle gives mender-nats no restart policy and the rest on-failure, which
+  # only survives a reboot if the container happened to exit non-zero at shutdown.
+  # docker update changes the policy in place; recreating would lose MinIO artifacts.
+  mender_containers | xargs -r docker update --restart unless-stopped >/dev/null
 fi
 
-# 4. Wait until nothing is starting/restarting, then report stragglers
+# 4. Wait until the stack is stable: everything running and no restart counts
+#    moving. Services started before nats/mongo crash-loop with a growing
+#    backoff, so once their dependencies are up, restart them straight away.
 end=$((SECONDS + WAIT_SECONDS))
-while (( SECONDS < end )); do
-  docker ps --format '{{.Status}}' | grep -qiE 'starting|restarting' || break
-  sleep 5
+while :; do
+  before="$(mender_state)"
+  sleep 15
+  after="$(mender_state)"
+  if [[ "$before" == "$after" ]] && ! awk '$3 != "running"' <<<"$after" | grep -q .; then
+    pass "Mender stack stable for 15 s"
+    break
+  fi
+  if (( check_only || SECONDS >= end )); then
+    fail "Mender stack not stable: $(diff <(echo "$before") <(echo "$after") | grep '^>' | tr '\n' ' ')$(awk '$3 != "running" {printf "%s(%s) ", $1, $3}' <<<"$after")"
+    break
+  fi
+  awk '$3 != "running" {print $1}' <<<"$after" | xargs -r docker restart >/dev/null
 done
-mender_up="$(docker ps --format '{{.Names}}' | grep -c '^.*integration-385-' || true)"
+while (( SECONDS < end )) && docker ps --format '{{.Status}}' | grep -qi 'health: starting'; do sleep 5; done
+mender_up="$(docker ps --format '{{.Names}}' | grep -c 'integration-385-' || true)"
+no_policy="$(mender_containers | xargs -r docker inspect --format '{{.Name}} {{.HostConfig.RestartPolicy.Name}}' |
+  awk '$2 != "unless-stopped" {sub("^/", "", $1); printf "%s ", $1}')"
+[[ -z "$no_policy" ]] && pass "Mender restart policy unless-stopped" ||
+  fail "would not restart after reboot (run without --check to fix): $no_policy"
 (( mender_up >= 15 )) && pass "Mender containers up ($mender_up)" || fail "only $mender_up of 15 Mender containers up"
 stuck="$(docker ps -a --format '{{.Names}} {{.Status}}' | grep -E 'integration-385|jenkins|minio' | grep -viE ' up ' || true)"
 [[ -z "$stuck" ]] && pass "no Exited/Restarting containers" || fail "containers not running: $stuck"

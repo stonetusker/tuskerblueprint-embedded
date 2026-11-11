@@ -31,7 +31,7 @@ pipeline {
           
           git rev-parse --verify "${SOURCE_COMMIT}^{commit}" || git rev-parse --verify "origin/${SOURCE_COMMIT}^{commit}"
           
-          git checkout --detach "${SOURCE_COMMIT}" || git checkout --detach "origin/${SOURCE_COMMIT}"
+          git checkout "${SOURCE_COMMIT}" || git checkout --detach "origin/${SOURCE_COMMIT}"
         """
       }   
     }

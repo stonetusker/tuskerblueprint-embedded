@@ -2,7 +2,7 @@
 id: IMPL-DEMO-001
 title: Demo Guide
 status: Approved
-version: 0.1.0
+version: 0.1.1
 owner: Subeesh / Stonetusker Systems
 reviewers:
   - Principal Embedded Engineer
@@ -57,7 +57,7 @@ cd /home/subeesh/tuskerblueprint-embedded
 scripts/demo-services-up.sh
 ```
 
-All lines must be `PASS`, ending with `all services up`. Only the Mender server needs starting after a reboot; the script does that and verifies the rest. If anything fails, follow [Host Service Restart After Reboot](host-service-restart.md).
+All lines must be `PASS`, ending with `all services up`. Run it after every boot, even if the Mender UI already opens: services that depend on `nats` can be crash-looping in Docker's restart backoff, and the script waits for the stack to settle and restarts anything still stuck. If anything fails, follow [Host Service Restart After Reboot](host-service-restart.md).
 
 Never run `docker compose down` on the Mender stack: its data is not in named volumes and would be lost (details in the restart guide).
 
@@ -149,16 +149,13 @@ Signed artifacts with `ArtifactVerifyKey`, a three-device canary → pilot → f
 
 ## 5. After the demo
 
-The script stops the QEMU device on exit, so nothing needs to be cleaned up. Each run adds two finished deployments to Mender's history and one evidence directory under `artifacts/ota/`; both are harmless. To shut the host down safely:
+The script stops the QEMU device on exit, so nothing needs to be cleaned up. Each run adds two finished deployments to Mender's history and one evidence directory under `artifacts/ota/`; both are harmless. To shut the host down:
 
 ```bash
-cd ~/mender && docker compose -f integration-3.8.5/docker-compose.yml \
-  -f integration-3.8.5/docker-compose.storage.minio.yml -f docker-compose.override.yml \
-  --env-file mender.env stop
 sudo poweroff
 ```
 
-Use `stop`, not `down`. After the next power-on, start again at section 1.
+Do not stop the Mender containers first. Docker stops them cleanly during shutdown and, because they are `unless-stopped`, starts them again at boot; a container stopped by hand (`docker compose stop`) stays down after the reboot. Never use `down`. After the next power-on, start again at section 1.
 
 ## Rehearsal record
 

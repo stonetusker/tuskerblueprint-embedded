@@ -2,7 +2,7 @@
 id: IMPL-SVC-001
 title: Host Service Restart After Reboot
 status: Approved
-version: 0.2.0
+version: 0.3.0
 owner: Subeesh / Stonetusker Systems
 reviewers:
   - Principal Embedded Engineer
@@ -52,11 +52,22 @@ Docker itself (`systemctl is-enabled docker`), the GitHub Actions runner, and th
 | MinIO cache (`infra/compose/minio`) | Compose `restart: unless-stopped` | Yes |
 | GitHub Actions runner | systemd, `enabled` | Yes |
 | Jenkins agent `ubuntu24` (label `yocto-vps8`) | systemd `jenkins-agent.service`, `enabled` | Yes — it retries until Jenkins is up (expect one or two `Waiting 7 seconds before retry` lines in the journal, then `Connected`) |
-| Mender server (`~/mender/integration-3.8.5` + storage/override) | Compose `restart: on-failure` (from `common.yml`) | **No** — `on-failure` only restarts a crashed container while the daemon keeps running, not after the daemon/host restarts. This stack needs a manual start every time. |
+| Mender server (`~/mender/integration-3.8.5` + storage/override) | `unless-stopped`, set on the existing containers by `scripts/demo-services-up.sh` | Yes, once the script has run at least once on the current containers (see below). Dependants may crash-loop for a few seconds until `nats` and `mongo` are up; run the script after boot to settle them. |
 | Reverse proxy (`infra/compose/reverse-proxy`) | Compose `restart: unless-stopped` | Not applicable today — not deployed; no `BASE_DOMAIN`/`ACME_EMAIL` configured. |
 | QEMU canary `sensornode-canary-01` | Started on demand by `run-ota-e2e.sh` | No, by design — it only runs during a demo or test |
 
-In short: after a reboot, only the Mender server needs a manual start.
+In short: after a reboot, run `scripts/demo-services-up.sh` once; it confirms everything is back and repairs the Mender stack if it is not.
+
+### Why the Mender stack used to stay down
+
+The upstream bundle gives the Mender services `restart: on-failure` (from `common.yml`) and gives `mender-nats` **no restart policy at all**. After a reboot:
+
+- `on-failure` brings a container back only if it happened to exit non-zero at shutdown. Sometimes they do (2026-11-07), sometimes they exit `0` and stay down (2026-10-23 → 2026-11-07).
+- `mender-nats` never comes back. `workflows-server`, `workflows-worker`, `create-artifact-worker`, and `deviceconnect` need it, crash-loop, and Docker's restart backoff grows to about a minute between attempts. They then stay down for several minutes after `nats` is started, which is what a too-early check reports as "still down".
+
+`scripts/demo-services-up.sh` fixes both: it sets `unless-stopped` on every existing Mender container with `docker update` and, after starting the stack, waits until no restart count is moving, restarting any container still in backoff. `--check` reports `FAIL would not restart after reboot` if any container lacks the policy.
+
+The policy is set on the containers, not in `docker-compose.override.yml`, on purpose: changing `restart:` in a compose file makes the next `up -d` recreate every container, and a recreated `minio` container loses all uploaded artifacts (see below). If the containers are ever recreated deliberately, run the script again to reapply the policy.
 
 ## Mender data persistence (read before stopping anything)
 
@@ -92,7 +103,7 @@ systemctl is-active actions.runner.stonetusker-tuskerblueprint-embedded.subeesh-
 systemctl is-active jenkins-agent.service
 ```
 
-Expect `jenkins-jenkins-1` and `minio-minio-1` `Up (healthy)`, both units `active`, and every `integration-385-*` container `Exited`. `yocto-30-builder` (`Exited (137)`) is an old, unused builder container and can be ignored.
+Expect `jenkins-jenkins-1` and `minio-minio-1` `Up (healthy)` and both units `active`. The `integration-385-*` containers are `Up` once the restart policy has been applied; otherwise some or all are `Exited`, `5fe1e2503f5c_integration-385-mender-nats-1` in particular, and the nats-dependent services show `Restarting`. `yocto-30-builder` (`Exited (137)`) is an old, unused builder container and can be ignored.
 
 If the agent unit is missing on a rebuilt host, install it once:
 
@@ -109,7 +120,7 @@ cd /home/subeesh/tuskerblueprint-embedded/infra/compose/jenkins && docker compos
 cd /home/subeesh/tuskerblueprint-embedded/infra/compose/minio && docker compose up -d
 ```
 
-### 2. Start the Mender server (manual every time)
+### 2. Start the Mender server
 
 ```bash
 cd /home/subeesh/mender
@@ -121,6 +132,13 @@ docker compose \
 ```
 
 This starts all 15 Mender containers (`mongo`, `nats`, `useradm`, `device-auth`, `inventory`, `deployments`, `deviceconnect`, `deviceconfig`, `iot-manager`, `workflows-server`, `workflows-worker`, `create-artifact-worker`, the bundled `minio` object store, `gui`, and `mender-api-gateway`). Existing users, devices, artifacts, and deployment history are kept because the existing containers are reused — do not recreate the admin account. Startup takes 30–60 seconds.
+
+Then apply the restart policy and kick anything stuck in restart backoff:
+
+```bash
+docker ps -a --format '{{.Names}}' | grep integration-385- | xargs docker update --restart unless-stopped
+docker ps -a --filter status=restarting --filter status=exited --format '{{.Names}}' | grep integration-385- | xargs -r docker restart
+```
 
 `docker-compose.override.yml` must keep `DEPLOYMENTS_AWS_EXTERNAL_URI: https://s3.docker.mender.io` on `mender-deployments`. Without it, presigned download URLs point at the Docker-internal `http://minio:9000` and every device download fails with `Host not found`. Devices resolve `docker.mender.io` and `s3.docker.mender.io` to `10.0.2.2` (QEMU slirp gateway) from their own `/etc/hosts`; the host does not need an `s3.docker.mender.io` entry.
 
@@ -151,6 +169,8 @@ MC="docker compose -f integration-3.8.5/docker-compose.yml -f integration-3.8.5/
 $MC restart mender-deployments     # one service
 $MC stop && $MC up -d              # whole stack
 ```
+
+A manual `stop` marks the containers as stopped by the user, so `unless-stopped` will not start them at the next boot until `up -d` (or the script) runs again. For a planned power-off, just run `sudo poweroff`.
 
 Do not use `down` (see [Mender data persistence](#mender-data-persistence-read-before-stopping-anything)). If data was lost anyway, restore from the latest `~/mender/backups/` snapshot into the recreated containers with `docker cp` while the stack is stopped.
 
