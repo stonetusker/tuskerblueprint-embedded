@@ -86,6 +86,17 @@ Terminal layout on the laptop:
 - By default the script stops the device when it finishes (or fails). With `KEEP_DEVICE=1`, as in section 3.4, the device stays up on the last good version so you can keep showing it.
 - During each OTA reboot the app is briefly unavailable (empty replies or errors for 20–60 s). That is expected.
 
+To show the device without running the OTA scenario (for example before the demo, or after a run without `KEEP_DEVICE=1`), boot it from its saved disk, which keeps the last installed version. On the host:
+
+```bash
+cd ~/tuskerblueprint-embedded
+DISK_IMAGE=$HOME/tbtest/ota-inputs/101/sensornode-image-release-qemuarm64.uefiimg RESET_DISK=0 \
+DEVICE_NAME=sensornode-canary-01 APP_PORT=18091 SSH_PORT=12291 \
+  setsid qemu-fleet/launch/qemu-device.sh >/tmp/canary.log 2>&1 </dev/null &
+```
+
+`DISK_IMAGE` is only copied when no saved disk exists yet. Stop it with `pkill -f 'qemu-system-aarch64 -name sensornode-canary-01'` before running section 3.4, which needs the port.
+
 So "connection refused" in the browser, or `channel 2: open failed: connect failed: Connection refused` in terminal C, means no device is running; the tunnel itself is fine. Start the tunnel once and leave it open: it reconnects to each new device automatically. Only one tunnel can hold the port: if `ssh` prints `bind [::1]:18091: Address already in use`, a tunnel is already open (`lsof -nP -iTCP:18091 -sTCP:LISTEN` shows it).
 
 ## 3. Demo flow (about 25 minutes)
