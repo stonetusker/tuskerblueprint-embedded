@@ -5,6 +5,9 @@
 #   3. deploy an unhealthy candidate: expect the health gate to fail and the device
 #      to roll back to v2
 # Evidence (API responses, device logs, serial console) lands in $ARTIFACT_DIR/ota/<run>/.
+# The device app is forwarded to 127.0.0.1:$APP_PORT only while QEMU runs. By
+# default QEMU stops when this script exits; KEEP_DEVICE=1 leaves it running
+# (stop it with: pkill -f 'qemu-system-aarch64 -name <DEVICE_NAME>').
 set -Eeuo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$root/scripts/lib/common.sh"
@@ -17,6 +20,7 @@ DEVICE_NAME="${DEVICE_NAME:-sensornode-canary-01}"
 APP_PORT="${APP_PORT:-18091}"
 SSH_PORT="${SSH_PORT:-12291}"
 DEPLOY_TIMEOUT_SECONDS="${DEPLOY_TIMEOUT_SECONDS:-3600}"
+KEEP_DEVICE="${KEEP_DEVICE:-0}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-$PROJECT_ROOT/artifacts}"
 evidence="$ARTIFACT_DIR/ota/$(date -u +%Y%m%dT%H%M%SZ)"
 require_env MENDER_USER
@@ -25,7 +29,11 @@ require_file "$FACTORY_DISK"
 require_file "$GOOD_ARTIFACT"
 require_command curl
 require_command python3
+require_command setsid
 mkdir -p "$evidence"
+if curl --silent --max-time 2 -o /dev/null "http://127.0.0.1:$APP_PORT/health"; then
+  die "something already answers on 127.0.0.1:$APP_PORT; stop it first: pkill -f 'qemu-system-aarch64 -name $DEVICE_NAME'"
+fi
 
 curl_opts=(--silent --show-error --fail-with-body)
 [[ "${MENDER_INSECURE_TLS:-0}" == "1" ]] && curl_opts+=(--insecure)
@@ -54,7 +62,7 @@ trap stop_device EXIT
 info "evidence directory: $evidence"
 launched_at="$(date -u +%Y-%m-%dT%H:%M:%S)"
 DISK_IMAGE="$FACTORY_DISK" RESET_DISK=1 DEVICE_NAME="$DEVICE_NAME" APP_PORT="$APP_PORT" SSH_PORT="$SSH_PORT" \
-  "$PROJECT_ROOT/qemu-fleet/launch/qemu-device.sh" >"$evidence/qemu.stdout.log" 2>"$evidence/qemu.stderr.log" &
+  setsid "$PROJECT_ROOT/qemu-fleet/launch/qemu-device.sh" >"$evidence/qemu.stdout.log" 2>"$evidence/qemu.stderr.log" </dev/null &
 pid=$!
 DEVICE_HOST=127.0.0.1 APP_PORT="$APP_PORT" TIMEOUT_SECONDS=900 "$PROJECT_ROOT/qemu-fleet/launch/wait-for-device.sh"
 factory_version="$(device_version)"
@@ -139,8 +147,14 @@ fi
 
 api GET "/v2/devauth/devices/$device_id" >"$evidence/device-after.json"
 api GET "/v1/inventory/devices/$device_id" >"$evidence/inventory-after.json" || true
-stop_device
-pid=""
+if [[ "$KEEP_DEVICE" == "1" ]]; then
+  cp "$PROJECT_ROOT/qemu-fleet/state/$DEVICE_NAME/serial.log" "$evidence/serial.log" 2>/dev/null || true
+  pid=""
+  info "KEEP_DEVICE=1: $DEVICE_NAME stays up on http://127.0.0.1:$APP_PORT/version; stop it with: pkill -f 'qemu-system-aarch64 -name $DEVICE_NAME'"
+else
+  stop_device
+  pid=""
+fi
 cat >"$evidence/summary.json" <<EOF
 {
   "device_name": "$DEVICE_NAME",

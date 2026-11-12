@@ -86,6 +86,8 @@ mender/demo-scenarios/run-ota-e2e.sh
 
 The script boots the factory disk, accepts the device (including a new key from a fresh disk), deploys the healthy candidate and expects `success` and the new `/version`, then deploys `sensornode-image-release-broken` (`SENSORNODE_FAILURE_MODE=health`) and expects `failure` and the previous version. API responses, device deployment logs, serial console, and `SHA256SUMS` are written to `artifacts/ota/<run>/`.
 
+The device app is forwarded to `127.0.0.1:18091` (`APP_PORT`) on the host only while the QEMU device runs; the script stops it on exit unless `KEEP_DEVICE=1` is set. See [Demo Guide](demo-guide.md#the-device-app-port-18091).
+
 The self-hosted server must hand out presigned artifact URLs that devices can resolve. With the bundled MinIO, set `DEPLOYMENTS_AWS_EXTERNAL_URI: https://s3.docker.mender.io` on `mender-deployments`. Otherwise downloads fail with `Host not found ... http://minio:9000/...`.
 
 ## 8. Expand rollout

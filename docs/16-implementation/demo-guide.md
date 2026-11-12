@@ -2,13 +2,13 @@
 id: IMPL-DEMO-001
 title: Demo Guide
 status: Approved
-version: 0.1.1
+version: 0.2.0
 owner: Subeesh / Stonetusker Systems
 reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-11-07
-updated: 2026-11-07
+updated: 2026-11-12
 traces_to:
   - PRD-REQ-006
   - PRD-REQ-007
@@ -32,7 +32,7 @@ Say this plainly; it keeps the demo credible.
 |---|---|
 | Mender OTA install, reboot, health gate, commit on a QEMU canary | Proven (EVID-003), re-run on 2026-11-07 |
 | Automatic device rollback of an unhealthy release | Proven (EVID-004), re-run on 2026-11-07 |
-| Jenkins pipeline and `FAILURE_DRILL` (broken image stopped in CI) | Ready; rehearse once before showing it live |
+| Jenkins pipeline and `FAILURE_DRILL` (broken image stopped in CI) | Rehearsed on the host on 2026-11-12 with the pipeline scripts (broken image built in 246 s; QEMU test `test_02_health_endpoint` failed as intended). Run it once from the Jenkins UI before showing it live |
 | GitHub Actions self-hosted runner, nightly builds | Working |
 | Jenkins MCP / Claude diagnostics | Contract and guide only — present as roadmap, do not demo live |
 | Artifact signing, three-device fleet, physical board | Not done — roadmap |
@@ -47,7 +47,7 @@ Your laptop needs `192.168.0.109 docker.mender.io` in `/etc/hosts`.
 | Jenkins | <http://docker.mender.io:8088/> | Jenkins admin account |
 | MinIO cache console | <http://docker.mender.io:9001/> | MinIO root user from `infra/compose/minio` |
 | GitHub Actions | `stonetusker/tuskerblueprint-embedded` → Actions; Settings → Actions → Runners | GitHub account |
-| Device app (during the demo only) | <http://127.0.0.1:18091/version> through the SSH tunnel below | — |
+| Device app | <http://127.0.0.1:18091/version> through the SSH tunnel below — **only while the QEMU device is running** (see [The device app port](#the-device-app-port-18091)) | — |
 
 ## 1. After a restart: bring everything up (5 minutes)
 
@@ -75,8 +75,18 @@ Terminal layout on the laptop:
 | Terminal | Command | Purpose |
 |---|---|---|
 | A — driver | `ssh subeesh@192.168.0.109` | Runs the OTA scenario |
-| B — device console | `ssh subeesh@192.168.0.109` then, once the device starts, `tail -f ~/tuskerblueprint-embedded/qemu-fleet/state/sensornode-canary-01/serial.log` | Shows boot, GRUB slot switch, and the health gate |
-| C — device version (optional) | `ssh -N -L 18091:127.0.0.1:18091 subeesh@192.168.0.109` and in a browser open `http://127.0.0.1:18091/version` (refresh) or run `watch -n2 curl -s 127.0.0.1:18091/version` | Shows the running image version change |
+| B — device console | `ssh subeesh@192.168.0.109` then `tail -F ~/tuskerblueprint-embedded/qemu-fleet/state/sensornode-canary-01/serial.log` | Shows boot, GRUB slot switch, and the health gate. `-F` keeps following when the script starts a new device and the log is recreated |
+| C — device version (optional) | `ssh -N -L 18091:127.0.0.1:18091 subeesh@192.168.0.109` (leave it open), then in a third local terminal `while sleep 2; do curl -s -m 2 127.0.0.1:18091/version; echo; done`, or open <http://127.0.0.1:18091/version> in a browser and refresh | Shows the running image version change (`image_version`). macOS has no `watch`, hence the loop |
+
+### The device app port (18091)
+
+`18091` is not a service on the host. It is QEMU's port forward to the SensorNode app (port 8080) inside the canary device, and it exists **only while the QEMU device runs**:
+
+- `mender/demo-scenarios/run-ota-e2e.sh` starts the device; the app answers about 20–30 s later, once the factory image has booted.
+- By default the script stops the device when it finishes (or fails). With `KEEP_DEVICE=1`, as in section 3.4, the device stays up on the last good version so you can keep showing it.
+- During each OTA reboot the app is briefly unavailable (empty replies or errors for 20–60 s). That is expected.
+
+So "connection refused" in the browser, or `channel 2: open failed: connect failed: Connection refused` in terminal C, means no device is running; the tunnel itself is fine. Start the tunnel once and leave it open: it reconnects to each new device automatically. Only one tunnel can hold the port: if `ssh` prints `bind [::1]:18091: Address already in use`, a tunnel is already open (`lsof -nP -iTCP:18091 -sTCP:LISTEN` shows it).
 
 ## 3. Demo flow (about 25 minutes)
 
@@ -87,10 +97,10 @@ Open `README.md` and `docs/04-architecture/`. The message: one specification-dri
 ### 3.2 Build and CI (5 min)
 
 1. **GitHub Actions** — show the self-hosted runner online and a recent successful nightly run (`.github/workflows/nightly.yml`).
-2. **MinIO cache** — open the console and show the `yocto-sstate` and `yocto-downloads` buckets; point out that the warm-cache CI build takes about 2 minutes (`artifacts/build-duration-seconds` = 106 s) instead of hours.
-3. **Jenkins** — open `sensornode-diagnostic-build` and its last builds. Stages: Checkout → Validate → Build and QEMU Test → Diagnostic Evidence → Human Approval for Rebuild.
+2. **MinIO cache** — open the console and show the `yocto-sstate` and `yocto-downloads` buckets (also `release-artifacts`, `release-evidence`); point out that a warm-cache image build takes minutes instead of hours (`artifacts/build-duration-seconds`: 106 s on the host, 240 s in Jenkins build 14).
+3. **Jenkins** — open `sensornode-diagnostic-build` and its last builds. Stages: Checkout → Validate → Build and QEMU Test → Diagnostic Evidence → Human Approval for Rebuild → Approved Rebuild (the last two run only after a failure with `DIAGNOSTIC_REBUILD`). Open the last green build → **Tests**: the QEMU runtime tests (oeqa: ping, ssh, systemd, and the four `SensorNodeRuntimeTest` checks) appear as individual test cases, published from `artifacts/test-reports/oeqa-junit.xml`.
 
-Optional, live (only if rehearsed): **Build with Parameters** → `FAILURE_DRILL` = true → Build. Jenkins builds `sensornode-image-broken`, the QEMU health test fails, the build goes red, the diagnostic bundle is archived, and nothing is promoted to Mender. Start it at the beginning of section 3.2 so it finishes while you talk. This is the "pipeline prevention" control (`mender/demo-scenarios/pipeline-prevention.md`).
+Optional, live (only if rehearsed): **Build with Parameters** → `FAILURE_DRILL` = true → Build. Jenkins builds `sensornode-image-broken`, the QEMU health test fails (**Tests** shows `test_02_health_endpoint` failed: `/health` returns 503), the build goes red, the diagnostic bundle is archived, and nothing is promoted to Mender. With a warm cache it takes about 10 minutes (build about 4 minutes, QEMU test about 2–4 minutes). Start it at the beginning of section 3.2 so it finishes while you talk. This is the "pipeline prevention" control (`mender/demo-scenarios/pipeline-prevention.md`).
 
 ### 3.3 Fleet view in Mender (2 min)
 
@@ -108,19 +118,22 @@ MENDER_CA_CERT=$HOME/mender/integration-3.8.5/cert/cert.crt \
 FACTORY_DISK=$HOME/tbtest/ota-inputs/101/sensornode-image-release-qemuarm64.uefiimg \
 GOOD_ARTIFACT=$HOME/tbtest/ota-inputs/102/sensornode-image-release-qemuarm64.mender \
 BROKEN_ARTIFACT=$HOME/tbtest/ota-inputs/103/sensornode-image-release-broken-qemuarm64.mender \
+KEEP_DEVICE=1 \
   mender/demo-scenarios/run-ota-e2e.sh
 ```
+
+`KEEP_DEVICE=1` leaves the canary running on `0.3.0-102` after the script ends, so terminal C and the browser keep working for questions. Stop it after the demo (section 5). Without it, the device and port 18091 go away when the script exits.
 
 Narrate while it runs. The script prints each milestone with a timestamp:
 
 | Phase | Terminal A prints | Show the audience | Typical time |
 |---|---|---|---|
 | Factory boot | `canary sensornode-canary-01 is healthy on factory image 0.3.0-101-ff2bd03` | Terminal B: UEFI → GRUB → systemd boot; terminal C: `0.3.0-101` | ~25 s |
-| Enrolment | `accepted auth set …` | Mender **Devices**: a factory-fresh disk has a new key; the script accepts it (in production this is done by preauthorisation) | ~10 s |
+| Enrolment | `accepted auth set …` | Mender **Devices**: a factory-fresh disk has a new key; the script accepts it (in production this is done by preauthorisation) | ~10–40 s |
 | Healthy update | `canary deployment … created` then `canary committed … reports 0.3.0-102-ff2bd03` | Mender **Deployments → In progress**: downloading → installing → rebooting → success. Terminal B: reboot into the other root partition, health script passes. Terminal C: `0.3.0-102` | ~2 min |
 | Broken update | `rollback deployment … created` | The `-broken` release installs and reboots like any other | — |
-| Health gate refuses commit | `unhealthy … was rejected and the device rolled back to 0.3.0-102-ff2bd03` | Terminal B: `ArtifactCommit_Enter_50_sensornode-health` fails (`/health` returns 503), Mender reboots into the previous slot. Mender shows the deployment as **failure**. Terminal C: back on `0.3.0-102` | ~5 min |
-| Done | `OTA end-to-end passed; evidence in …/artifacts/ota/<run>` | — | — |
+| Health gate refuses commit | `unhealthy … was rejected and the device rolled back to 0.3.0-102-ff2bd03` | Terminal B: `ArtifactCommit_Enter_50_sensornode-health` fails (`/health` returns 503), Mender reboots into the previous slot. Mender shows the deployment as **failure**. Terminal C: back on `0.3.0-102` | ~4–5 min |
+| Done | `KEEP_DEVICE=1: sensornode-canary-01 stays up …` then `OTA end-to-end passed; evidence in …/artifacts/ota/<run>` | Terminal C still shows `0.3.0-102` | — |
 
 Key talking point: the broken image booted fine — only the application-level health gate caught it, and the device healed itself without anyone touching it.
 
@@ -142,14 +155,16 @@ Signed artifacts with `ArtifactVerifyKey`, a three-device canary → pilot → f
 | Symptom | Action |
 |---|---|
 | `device … was not enrolled` | Mender UI → Devices → Pending → accept `sensornode-canary-01`, then re-run the command. |
-| `device already running: sensornode-canary-01` | `pkill -f 'qemu-system-aarch64 -name sensornode-canary-01'`, then re-run. |
+| `device already running: sensornode-canary-01` or `something already answers on 127.0.0.1:18091` | A device from an earlier run (for example `KEEP_DEVICE=1`) is still up: `pkill -f 'qemu-system-aarch64 -name sensornode-canary-01'`, then re-run. |
+| Browser shows connection refused on `127.0.0.1:18091` | No device is running (before the factory boot, or after the script ended without `KEEP_DEVICE=1`). See [The device app port](#the-device-app-port-18091). |
+| `bind [::1]:18091: Address already in use` when opening the tunnel | A tunnel is already open; use it, or close it (`lsof -nP -iTCP:18091 -sTCP:LISTEN`, then `kill <pid>`). |
 | Deployment stuck in downloading | `docker logs --tail 50 integration-385-mender-deployments-1`; confirm the override still sets `DEPLOYMENTS_AWS_EXTERNAL_URI`. |
 | Mender UI login fails or shows no devices | Stop. Do not recreate the stack. Run `scripts/demo-services-up.sh --check` and see the restart guide. |
 | Live run fails and time is short | Show the recorded run instead: `artifacts/ota/20261023T130809Z/` and `docs/15-evidence/ota-deployment-summary.md`, `rollback-summary.md`. |
 
 ## 5. After the demo
 
-The script stops the QEMU device on exit, so nothing needs to be cleaned up. Each run adds two finished deployments to Mender's history and one evidence directory under `artifacts/ota/`; both are harmless. To shut the host down:
+If you used `KEEP_DEVICE=1`, stop the device: `pkill -f 'qemu-system-aarch64 -name sensornode-canary-01'`; otherwise the script already stopped it. Close the tunnel in terminal C with Ctrl-C. Each run adds two finished deployments to Mender's history and one evidence directory under `artifacts/ota/`; both are harmless. To shut the host down:
 
 ```bash
 sudo poweroff
@@ -163,3 +178,4 @@ Do not stop the Mender containers first. Docker stops them cleanly during shutdo
 |---|---|---|---|
 | 2026-10-23 | Subeesh | OTA install + rollback passed (3 runs) | `artifacts/ota/20261023T130809Z/` |
 | 2026-11-07 | Claude Code, after host reboot | Services restored with `scripts/demo-services-up.sh`; OTA install + rollback passed in 7 min 6 s (healthy update 106 s, rollback 4 min 46 s) | `artifacts/ota/20261107T013714Z/` |
+| 2026-11-12 | Claude Code, full guide walk-through | Section 1 all `PASS`; checklist verified; OTA install + rollback passed in 6 min 50 s with `KEEP_DEVICE=1` (factory boot 23 s, enrolment 40 s, healthy update 106 s, rollback 4 min 1 s); laptop tunnel showed `0.3.0-101` → `0.3.0-102` and the device stayed up after the script ended | `artifacts/ota/20261112T154412Z/` |

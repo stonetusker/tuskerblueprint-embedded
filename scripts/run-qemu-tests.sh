@@ -26,6 +26,22 @@ mkdir -p "$ARTIFACT_DIR/oeqa"
 
 info "running Yocto testimage for $IMAGE"
 
+# Collect evidence and publish JUnit even when testimage fails: that is when
+# CI needs the per-test view most (for example the FAILURE_DRILL build).
+publish_results() {
+  local rc=$?
+  # Only tmp/log/oeqa: scanning the whole build tree takes minutes.
+  (cd "$PROJECT_ROOT" && find "$BUILD_RELATIVE/tmp/log/oeqa" -type f -exec cp --parents {} "$ARTIFACT_DIR/oeqa" \;) 2>/dev/null || true
+  python3 "$PROJECT_ROOT/tools/oeqa_to_junit.py" \
+    --search-root "$ARTIFACT_DIR/oeqa" \
+    --image "$IMAGE" \
+    --output "$ARTIFACT_DIR/test-reports/oeqa-junit.xml" \
+    || warn "could not convert oeqa results to JUnit"
+  if (( rc == 0 )); then info "QEMU runtime tests passed"; else warn "QEMU runtime tests failed (exit $rc)"; fi
+}
+trap publish_results EXIT
+rm -rf "$ARTIFACT_DIR/test-reports"
+
 if [[ "$USE_CONTAINER" == "1" ]]; then
   require_command docker
   docker run --rm --privileged \
@@ -44,12 +60,3 @@ else
   require_command kas
   (cd "$PROJECT_ROOT" && KAS_BUILD_DIR="$BUILD_DIR" kas shell "$KAS_CONFIG" -c "bitbake -c testimage $IMAGE")
 fi
-
-
-(cd "$PROJECT_ROOT" && find "$BUILD_RELATIVE" -path '*/log/oeqa/*' -type f -exec cp --parents {} "$ARTIFACT_DIR/oeqa" \;) 2>/dev/null || true
-# Publish the oeqa results as JUnit so CI shows the real runtime test cases.
-python3 "$PROJECT_ROOT/tools/oeqa_to_junit.py" \
-  --search-root "$ARTIFACT_DIR/oeqa" \
-  --output "$ARTIFACT_DIR/test-reports/oeqa-junit.xml" \
-  || warn "could not convert oeqa results to JUnit"
-info "QEMU runtime tests passed"
