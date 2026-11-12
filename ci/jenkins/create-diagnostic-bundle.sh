@@ -13,6 +13,8 @@ mkdir -p "$out"
   printf 'result=%s\n' "${INITIAL_RESULT:-unknown}"
 } > "$out/build.properties"
 
-find "$build_dir" -type f \( -name 'log.do_*' -o -name 'console-latest.log' -o -name '*.xml' \) -size -10M \
+# Only task/console logs: arbitrary *.xml from the build tree (xcb protocol
+# files, MIME data, ...) is not diagnostic and broke the Jenkins junit report.
+find "$build_dir" -type f \( -name 'log.do_*' -o -name 'console-latest.log' \) -size -10M \
   -exec cp --parents {} "$out" \; 2>/dev/null || true
 python3 "$root/tools/redact_build_logs.py" --root "$out"

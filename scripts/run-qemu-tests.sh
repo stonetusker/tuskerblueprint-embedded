@@ -47,4 +47,9 @@ fi
 
 
 (cd "$PROJECT_ROOT" && find "$BUILD_RELATIVE" -path '*/log/oeqa/*' -type f -exec cp --parents {} "$ARTIFACT_DIR/oeqa" \;) 2>/dev/null || true
+# Publish the oeqa results as JUnit so CI shows the real runtime test cases.
+python3 "$PROJECT_ROOT/tools/oeqa_to_junit.py" \
+  --search-root "$ARTIFACT_DIR/oeqa" \
+  --output "$ARTIFACT_DIR/test-reports/oeqa-junit.xml" \
+  || warn "could not convert oeqa results to JUnit"
 info "QEMU runtime tests passed"

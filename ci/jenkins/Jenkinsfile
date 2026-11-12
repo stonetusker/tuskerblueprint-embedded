@@ -62,7 +62,7 @@ pipeline {
       steps {
         sh 'ci/jenkins/create-diagnostic-bundle.sh'
         archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true, fingerprint: true
-        junit testResults: 'artifacts/**/*.xml', allowEmptyResults: true
+        junit testResults: 'artifacts/test-reports/*.xml, artifacts/release-qemu/junit.xml', allowEmptyResults: true
       }
     }
 

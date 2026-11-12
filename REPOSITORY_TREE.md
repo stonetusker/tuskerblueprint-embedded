@@ -369,6 +369,7 @@ tests/qemu/test_version.py
 tools/fetch_candidate.py
 tools/generate_release_manifest.py
 tools/lock_sources.py
+tools/oeqa_to_junit.py
 tools/publish_candidate.py
 tools/redact_build_logs.py
 tools/render_benchmark_summary.py
