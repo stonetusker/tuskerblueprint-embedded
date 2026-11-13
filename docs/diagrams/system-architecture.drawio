@@ -1,0 +1,450 @@
+<mxfile host="Electron" agent="TuskerBlueprint diagram generator">
+  <diagram id="arch" name="System Architecture">
+    <mxGraphModel dx="1453" dy="767" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1980" pageHeight="1640" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="arch-1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=20;" value="&lt;b&gt;TuskerBlueprint Embedded — System Architecture&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:12px&#39;&gt;SensorNode: Yocto (scarthgap, qemuarm64) image built by GitHub Actions / Jenkins on a single Ubuntu 24.04 host, cached in MinIO, validated in QEMU, delivered with Mender A/B OTA. Source: repository as of 2026-11-13.&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="1500" x="20" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-2" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Developer workstation (Mac M3 / Ubuntu laptop)" vertex="1">
+          <mxGeometry height="300" width="300" x="20" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-3" parent="arch-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Git working copy&lt;/b&gt;&lt;br&gt;app/sensornode (Go)&lt;br&gt;meta-sensornode (layer)&lt;br&gt;kas/*.yml, scripts/, docs/" vertex="1">
+          <mxGeometry height="80" width="270" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-4" parent="arch-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Local checks&lt;/b&gt;&lt;br&gt;make app-test · app-build&lt;br&gt;make docs-check yaml-check&lt;br&gt;optional local kas build" vertex="1">
+          <mxGeometry height="75" width="270" x="15" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-5" parent="arch-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Claude Code&lt;/b&gt; (assistant)&lt;br&gt;edits, runbooks, demo prep" vertex="1">
+          <mxGeometry height="70" width="270" x="15" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="GitHub — stonetusker/tuskerblueprint-embedded" vertex="1">
+          <mxGeometry height="300" width="820" x="350" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-7" parent="arch-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Git repository&lt;/b&gt;&lt;br&gt;branch: main · PRs&lt;br&gt;CODEOWNERS · PR template&lt;br&gt;branch protection" vertex="1">
+          <mxGeometry height="110" width="200" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-8" parent="arch-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;" value="&lt;b&gt;GitHub Actions workflows&lt;/b&gt;&lt;br align=&#39;left&#39;&gt;&lt;div style=&#39;text-align:left&#39;&gt;• pull-request.yml — PR gate&lt;br&gt;• docs.yml — spec/link validation&lt;br&gt;• ci.yml — push to main: Yocto build + cache push&lt;br&gt;• nightly.yml — 02:00 UTC rebuild + cache refresh&lt;br&gt;• build-image.yml — manual / reusable build&lt;br&gt;• release-candidate.yml — build, test, SBOM, sign&lt;br&gt;• promote-mender.yml — upload + canary deployment&lt;/div&gt;" vertex="1">
+          <mxGeometry height="175" width="330" x="230" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-9" parent="arch-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;GitHub-hosted runners&lt;/b&gt;&lt;br&gt;ubuntu-latest&lt;br&gt;app-test/app-build, docs, python, yaml, shell checks" vertex="1">
+          <mxGeometry height="90" width="230" x="575" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-10" parent="arch-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Protected environments&lt;/b&gt;&lt;br&gt;firmware-signing&lt;br&gt;firmware-production&lt;br&gt;(required reviewers, secrets)" vertex="1">
+          <mxGeometry height="75" width="230" x="575" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-11" parent="arch-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Actions artifact storage&lt;/b&gt;&lt;br&gt;sensornode-build-outputs&lt;br&gt;unsigned-sensornode-&amp;lt;ver&amp;gt;-&amp;lt;sha&amp;gt; (7 d)" vertex="1">
+          <mxGeometry height="120" width="200" x="15" y="165" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-12" parent="arch-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Secrets&lt;/b&gt;: MINIO_*, MENDER_SERVER_URL, MENDER_ACCESS_TOKEN" vertex="1">
+          <mxGeometry height="60" width="575" x="230" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-13" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#ffffff;strokeColor=#666666;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Upstream sources (pinned by kas/source-lock.yml)" vertex="1">
+          <mxGeometry height="300" width="380" x="1200" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-14" parent="arch-13" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Yocto layers&lt;/b&gt;&lt;br&gt;poky (scarthgap) · meta-openembedded&lt;br&gt;(meta-oe, networking, python)&lt;br&gt;meta-mender (core, demo, qemu)" vertex="1">
+          <mxGeometry height="95" width="350" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-15" parent="arch-13" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Source tarballs / git&lt;/b&gt; fetched by BitBake&lt;br&gt;(fallback when MinIO PREMIRRORS miss)" vertex="1">
+          <mxGeometry height="60" width="350" x="15" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-16" parent="arch-13" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Container registries&lt;/b&gt;&lt;br&gt;Jenkins, MinIO, Mender 3.8.5 images" vertex="1">
+          <mxGeometry height="70" width="350" x="15" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-17" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Operator / demo laptop" vertex="1">
+          <mxGeometry height="300" width="340" x="1610" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-18" parent="arch-17" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Browser&lt;/b&gt;&lt;br&gt;Mender UI https://docker.mender.io/ui/&lt;br&gt;Jenkins http://docker.mender.io:8088&lt;br&gt;MinIO console :9001" vertex="1">
+          <mxGeometry height="95" width="310" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-19" parent="arch-17" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;SSH session + tunnel&lt;/b&gt;&lt;br&gt;ssh subeesh@192.168.0.109&lt;br&gt;-L 18091:127.0.0.1:18091 (device app)" vertex="1">
+          <mxGeometry height="75" width="310" x="15" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-20" parent="arch-17" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="/etc/hosts: 192.168.0.109 docker.mender.io" vertex="1">
+          <mxGeometry height="50" width="310" x="15" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-21" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#fafafa;strokeColor=#333333;swimlaneFillColor=#ffffff;fontSize=14;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Ubuntu 24.04 host  ·  tuskerblueprint  ·  192.168.0.109  (docker.mender.io)  ·  12 vCPU / 14 GB / KVM  ·  provisioned by Ansible (infra/ansible)" vertex="1">
+          <mxGeometry height="1000" width="1930" x="20" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-22" parent="arch-21" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Host services (systemd)" vertex="1">
+          <mxGeometry height="390" width="360" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-23" parent="arch-22" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;GitHub Actions runner&lt;/b&gt;&lt;br&gt;actions.runner.…ubuntu24-laptop&lt;br&gt;labels: self-hosted, linux, yocto&lt;br&gt;~/actions-runner" vertex="1">
+          <mxGeometry height="85" width="330" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-24" parent="arch-22" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Jenkins inbound agent&lt;/b&gt;&lt;br&gt;jenkins-agent.service&lt;br&gt;node ubuntu24 · label yocto-vps8" vertex="1">
+          <mxGeometry height="75" width="330" x="15" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-25" parent="arch-22" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" value="&lt;b&gt;Release runner&lt;/b&gt; (target)&lt;br&gt;labels: self-hosted, linux, release&lt;br&gt;no docker group · no Yocto cache&lt;br&gt;/var/lib/tusker-release/mender-signing.pem (0600)" vertex="1">
+          <mxGeometry height="90" width="330" x="15" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-26" parent="arch-22" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;qemu-kvm.service&lt;/b&gt;&lt;br&gt;KVM module, KSM, hugepages" vertex="1">
+          <mxGeometry height="55" width="330" x="15" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-27" parent="arch-21" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Build execution (Docker, ephemeral per build)" vertex="1">
+          <mxGeometry height="390" width="520" x="400" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-28" parent="arch-27" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;yocto-builder container&lt;/b&gt;&lt;br&gt;stonetusker/yocto-builder:&amp;lt;VERSION&amp;gt;&lt;br&gt;kas build --target &amp;lt;image&amp;gt; kas/&amp;lt;cfg&amp;gt;.yml:kas/source-lock.yml&lt;br&gt;BitBake · testimage (oeqa) · create-spdx&lt;br&gt;images: sensornode-image-ci / -release / -broken" vertex="1">
+          <mxGeometry height="110" width="490" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-29" parent="arch-27" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Workspace&lt;/b&gt; (bind-mounted at /work)&lt;br&gt;build/tmp · build/tmp/deploy/images/qemuarm64" vertex="1">
+          <mxGeometry height="90" width="240" x="15" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-30" parent="arch-27" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Local cache&lt;/b&gt;&lt;br&gt;~/yocto-cache · cache/&lt;br&gt;downloads/ · sstate/" vertex="1">
+          <mxGeometry height="90" width="240" x="265" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-31" parent="arch-27" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;artifacts/&lt;/b&gt;&lt;br&gt;deploy/ · test-reports/ (JUnit) · diagnostics/ · sbom/ · release-qemu/ · ota/&amp;lt;run&amp;gt;/ evidence · build-duration-seconds" vertex="1">
+          <mxGeometry height="115" width="490" x="15" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-32" parent="arch-21" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Jenkins controller (docker: jenkins-jenkins-1)" vertex="1">
+          <mxGeometry height="390" width="420" x="1490" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-33" parent="arch-32" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Jenkins 2.568.3&lt;/b&gt; (tuskerblueprint/jenkins)&lt;br&gt;UI :8088 → 8080 · agents :50000&lt;br&gt;volume jenkins-home" vertex="1">
+          <mxGeometry height="80" width="390" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-34" parent="arch-32" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Job: sensornode-diagnostic-build&lt;/b&gt; (ci/jenkins/Jenkinsfile)&lt;br&gt;Checkout → Validate → Build + QEMU Test → Diagnostic Evidence → Human Approval → Approved Rebuild&lt;br&gt;params: SOURCE_COMMIT, FAILURE_DRILL, DIAGNOSTIC_REBUILD" vertex="1">
+          <mxGeometry height="120" width="390" x="15" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-35" parent="arch-32" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#999999;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" value="&lt;b&gt;Jenkins MCP endpoint&lt;/b&gt; (roadmap)&lt;br&gt;read-only tools: logs, JUnit, bundle&lt;br&gt;no promotion rights" vertex="1">
+          <mxGeometry height="110" width="390" x="15" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-36" parent="arch-21" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="MinIO object store (docker: minio-minio-1)" vertex="1">
+          <mxGeometry height="390" width="530" x="940" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-37" parent="arch-36" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;MinIO&lt;/b&gt; RELEASE.2024-08-03&lt;br&gt;S3 API :9000 · console :9001&lt;br&gt;policies: cache read/write, evidence read/write" vertex="1">
+          <mxGeometry height="80" width="500" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-38" parent="arch-36" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;yocto-sstate&lt;/b&gt;&lt;br&gt;shared-state (task outputs)" vertex="1">
+          <mxGeometry height="70" width="245" x="15" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-39" parent="arch-36" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;yocto-downloads&lt;/b&gt;&lt;br&gt;source tarballs / git mirrors" vertex="1">
+          <mxGeometry height="70" width="245" x="270" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-40" parent="arch-36" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;release-artifacts&lt;/b&gt;&lt;br&gt;build outputs" vertex="1">
+          <mxGeometry height="70" width="245" x="15" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-41" parent="arch-36" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;release-evidence&lt;/b&gt;&lt;br&gt;&amp;lt;version&amp;gt;/&amp;lt;commit&amp;gt;/ — write-once&lt;br&gt;signed .mender, sha256, manifest, SBOM, QEMU evidence" vertex="1">
+          <mxGeometry height="165" width="245" x="270" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-42" parent="arch-36" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;" value="Read: anonymous HTTP via SSTATE_MIRRORS / PREMIRRORS&lt;br&gt;Write: mc mirror (CACHE_WRITE_ALLOWED=1, main / nightly / release only)" vertex="1">
+          <mxGeometry height="85" width="245" x="15" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-43" parent="arch-21" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Mender Server 3.8.5 (docker compose: integration-385, ~/mender/integration-3.8.5)" vertex="1">
+          <mxGeometry height="520" width="1100" x="20" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-44" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;strokeWidth=2;" value="&lt;b&gt;API gateway — Traefik v3.1&lt;/b&gt;&lt;br&gt;:80 / :443 · https://docker.mender.io (self-signed cert)&lt;br&gt;device API /api/devices/* · management API /api/management/*" vertex="1">
+          <mxGeometry height="70" width="1070" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-45" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;gui&lt;/b&gt;&lt;br&gt;Web UI" vertex="1">
+          <mxGeometry height="75" width="206" x="15" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-46" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;useradm&lt;/b&gt;&lt;br&gt;users, login tokens" vertex="1">
+          <mxGeometry height="75" width="206" x="231" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-47" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;deviceauth&lt;/b&gt;&lt;br&gt;device auth sets, accept / preauth" vertex="1">
+          <mxGeometry height="75" width="206" x="447" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-48" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;deployments&lt;/b&gt;&lt;br&gt;artifacts, releases, deployments" vertex="1">
+          <mxGeometry height="75" width="206" x="663" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-49" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;inventory&lt;/b&gt;&lt;br&gt;device attributes" vertex="1">
+          <mxGeometry height="75" width="206" x="879" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-50" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;workflows server + worker&lt;/b&gt;&lt;br&gt;async jobs" vertex="1">
+          <mxGeometry height="75" width="206" x="15" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-51" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;create-artifact-worker&lt;/b&gt;&lt;br&gt;server-side artifact gen" vertex="1">
+          <mxGeometry height="75" width="206" x="231" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-52" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;deviceconfig&lt;/b&gt;&lt;br&gt;config" vertex="1">
+          <mxGeometry height="75" width="206" x="447" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-53" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;deviceconnect&lt;/b&gt;&lt;br&gt;remote terminal" vertex="1">
+          <mxGeometry height="75" width="206" x="663" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-54" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;iot-manager&lt;/b&gt;&lt;br&gt;integrations" vertex="1">
+          <mxGeometry height="75" width="206" x="879" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-55" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;MongoDB 6.0&lt;/b&gt;&lt;br&gt;service databases" vertex="1">
+          <mxGeometry height="70" width="340" x="15" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-56" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;NATS 2.7.4&lt;/b&gt;&lt;br&gt;message bus (workflows)" vertex="1">
+          <mxGeometry height="70" width="340" x="365" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-57" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Internal MinIO (S3)&lt;/b&gt;&lt;br&gt;artifact storage · DEPLOYMENTS_AWS_EXTERNAL_URI" vertex="1">
+          <mxGeometry height="70" width="370" x="715" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-58" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;" value="Never &#39;docker compose down&#39; this stack (data not in named volumes). scripts/demo-services-up.sh brings it back after reboot." vertex="1">
+          <mxGeometry height="40" width="1070" x="15" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-59" parent="arch-43" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Releases&lt;/b&gt; (examples): sensornode-0.3.0-102-ff2bd03 (healthy) · sensornode-0.3.0-103-ff2bd03-broken (rollback demo)&lt;br&gt;&lt;b&gt;Devices&lt;/b&gt;: sensornode-canary-01 (accepted)" vertex="1">
+          <mxGeometry height="60" width="1070" x="15" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-60" parent="arch-21" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#b1ddf0;strokeColor=#10739e;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="QEMU fleet (qemu-fleet/, sensornode-qemu@.service)" vertex="1">
+          <mxGeometry height="520" width="770" x="1140" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-61" parent="arch-60" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#b1ddf0;strokeColor=#10739e;swimlaneFillColor=#ffffff;fontSize=12;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="sensornode-canary-01  ·  qemu-system-aarch64 (virt, UEFI)  ·  disk.img (.uefiimg)" vertex="1">
+          <mxGeometry height="390" width="740" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-62" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;UEFI → GRUB&lt;/b&gt;&lt;br&gt;boot slot selection (mender_boot_part)" vertex="1">
+          <mxGeometry height="70" width="220" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-63" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;rootfs A&lt;/b&gt;&lt;br&gt;active slot" vertex="1">
+          <mxGeometry height="70" width="150" x="245" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-64" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;rootfs B&lt;/b&gt;&lt;br&gt;update slot" vertex="1">
+          <mxGeometry height="70" width="150" x="405" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-65" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;/data&lt;/b&gt;&lt;br&gt;persistent Mender state" vertex="1">
+          <mxGeometry height="70" width="160" x="565" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-66" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;mender client&lt;/b&gt; (mender-full)&lt;br&gt;polls server · installs to inactive slot · commit / rollback&lt;br&gt;MENDER_SERVER_URL=https://docker.mender.io (10.0.2.2)" vertex="1">
+          <mxGeometry height="85" width="400" x="15" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-67" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;State script health gate&lt;/b&gt;&lt;br&gt;ArtifactCommit_Enter_50_sensornode-health&lt;br&gt;service active · /health 200 · no failed units" vertex="1">
+          <mxGeometry height="85" width="300" x="425" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-68" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;sensornode.service&lt;/b&gt; (Go app, :8080)&lt;br&gt;GET /health · /ready · /version · /sensor&lt;br&gt;/etc/default/sensornode (SENSORNODE_FAILURE_MODE)" vertex="1">
+          <mxGeometry height="80" width="400" x="15" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-69" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Port forwards (slirp)&lt;/b&gt;&lt;br&gt;127.0.0.1:18091 → :8080 (app)&lt;br&gt;127.0.0.1:12291 → :22 (ssh)" vertex="1">
+          <mxGeometry height="80" width="300" x="425" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-70" parent="arch-61" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;" value="systemd · systemd-networkd · sensornode-release (/etc/os-release identity) · mender-device-identity (SMBIOS serial)" vertex="1">
+          <mxGeometry height="70" width="710" x="15" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-71" parent="arch-60" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" value="&lt;b&gt;pilot / fleet devices&lt;/b&gt; (roadmap)&lt;br&gt;canary → pilot → fleet rollout" vertex="1">
+          <mxGeometry height="65" width="360" x="15" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-72" parent="arch-60" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;" value="Serial console: qemu-fleet/state/&amp;lt;device&amp;gt;/serial.log" vertex="1">
+          <mxGeometry height="65" width="360" x="395" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-73" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#f0f0f0;strokeColor=#999999;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;dashed=1;dashPattern=8 4;" value="AI diagnostics (roadmap — advisory only, human-approved)" vertex="1">
+          <mxGeometry height="150" width="1000" x="20" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-74" parent="arch-73" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" value="&lt;b&gt;Claude&lt;/b&gt;&lt;br&gt;read-only Jenkins identity&lt;br&gt;cites evidence, proposes fix" vertex="1">
+          <mxGeometry height="90" width="280" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-75" parent="arch-73" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Human approver&lt;/b&gt;&lt;br&gt;group embedded-release-approvers&lt;br&gt;approves one controlled rebuild" vertex="1">
+          <mxGeometry height="90" width="300" x="340" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-76" parent="arch-73" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;" value="Prompt-injection controls · audit log · no write / promote permissions (docs/10-ai-governance)" vertex="1">
+          <mxGeometry height="90" width="300" x="680" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-77" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#ffffff;strokeColor=#666666;swimlaneFillColor=#ffffff;fontSize=12;fontStyle=1;rounded=1;arcSize=2;container=1;collapsible=0;" value="Legend" vertex="1">
+          <mxGeometry height="300" width="330" x="1600" y="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-78" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-79" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Developer / operator" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-80" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="68" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-81" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="GitHub (SaaS)" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="64" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-82" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="94" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-83" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Build execution (runner, kas/BitBake)" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-84" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-85" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="MinIO cache &amp;amp; evidence store" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="116" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-86" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-87" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Jenkins (diagnostic path)" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="142" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-88" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="172" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-89" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Protected release / signing" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="168" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-90" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="198" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-91" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Mender OTA server" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="194" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-92" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="224" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-93" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Device (QEMU qemuarm64)" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-94" parent="arch-77" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#999999;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" value="" vertex="1">
+          <mxGeometry height="18" width="30" x="15" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-95" parent="arch-77" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;" value="Dashed = roadmap / target, not live in the demo" vertex="1">
+          <mxGeometry height="26" width="270" x="55" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-96" edge="1" parent="1" source="arch-7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="arch-8" value="triggers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-97" edge="1" parent="1" source="arch-8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="arch-9" value="PR / docs jobs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-98" edge="1" parent="1" source="arch-5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" target="arch-7" value="git push · PR">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-99" edge="1" parent="1" source="arch-8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="arch-23" value="self-hosted jobs&lt;br&gt;(runner long-polls GitHub over HTTPS)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="646" y="410" />
+              <mxPoint x="220" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-100" edge="1" parent="1" source="arch-7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="arch-24" value="SCM checkout">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="395" y="420" />
+              <mxPoint x="30" y="420" />
+              <mxPoint x="30" y="652" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-101" edge="1" parent="1" source="arch-33" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;startArrow=block;startFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="arch-24" value="JNLP :50000">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1720" y="467" />
+              <mxPoint x="45" y="467" />
+              <mxPoint x="45" y="652" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-102" edge="1" parent="1" source="arch-23" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="arch-28" value="scripts/build-image.sh&lt;br&gt;run-qemu-tests.sh → docker run">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-103" edge="1" parent="1" source="arch-24" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="arch-28" value="docker run">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-104" edge="1" parent="1" source="arch-28" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.6;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="arch-14" value="fetch pinned layers / sources">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="729" y="420" />
+              <mxPoint x="1190" y="420" />
+              <mxPoint x="1190" y="177" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-105" edge="1" parent="1" source="arch-38" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.8;entryDx=0;entryDy=0;" target="arch-28" value="SSTATE_MIRRORS / PREMIRRORS&lt;br&gt;host.docker.internal:9000 (read)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-106" edge="1" parent="1" source="arch-30" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="arch-39" value="cache-sync.sh push&lt;br&gt;(mc mirror, run by runner)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1352" y="685" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-107" edge="1" parent="1" source="arch-23" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.1;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="arch-11" value="upload-artifact">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="88" y="400" />
+              <mxPoint x="465" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-108" edge="1" parent="1" source="arch-25" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="arch-41" value="publish_candidate.py&lt;br&gt;signed candidate (write-once)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="772" />
+              <mxPoint x="410" y="875" />
+              <mxPoint x="1352" y="875" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-109" edge="1" parent="1" source="arch-25" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" target="arch-44" value="promote-mender.yml:&lt;br&gt;upload artifact + canary deployment&lt;br&gt;(management API)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="905" />
+              <mxPoint x="269" y="905" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-110" edge="1" parent="1" source="arch-10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" target="arch-25" value="approval gate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="925" y="395" />
+              <mxPoint x="395" y="395" />
+              <mxPoint x="395" y="727" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-111" edge="1" parent="1" source="arch-44" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d79b00;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="arch-48" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-112" edge="1" parent="1" source="arch-48" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d79b00;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="arch-57" value="artifact blobs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="812" y="1180" />
+              <mxPoint x="940" y="1180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-113" edge="1" parent="1" source="arch-66" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d79b00;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;startArrow=block;startFill=1;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="arch-44" value="HTTPS 443&lt;br&gt;(slirp 10.0.2.2)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-114" edge="1" parent="1" source="arch-66" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="arch-64" value="write update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-115" edge="1" parent="1" source="arch-67" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" target="arch-68" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-116" edge="1" parent="1" source="arch-18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.2;entryDx=0;entryDy=0;" target="arch-44" value="Mender UI 443">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1590" y="196" />
+              <mxPoint x="1590" y="420" />
+              <mxPoint x="1500" y="420" />
+              <mxPoint x="1500" y="885" />
+              <mxPoint x="1150" y="885" />
+              <mxPoint x="1150" y="944" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-117" edge="1" parent="1" source="arch-18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="arch-33" value=":8088">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1970" y="177" />
+              <mxPoint x="1970" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-118" edge="1" parent="1" source="arch-35" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#999999;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="arch-74" value="MCP (read-only)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1942" y="795" />
+              <mxPoint x="1942" y="1440" />
+              <mxPoint x="180" y="1440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arch-119" edge="1" parent="1" source="arch-74" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#999999;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;" target="arch-75" value="proposal + cited evidence">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-120" edge="1" parent="1" source="arch-75" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="arch-34" value="input step:&lt;br&gt;Approve Rebuild">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="510" y="1450" />
+              <mxPoint x="1960" y="1450" />
+              <mxPoint x="1960" y="670" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

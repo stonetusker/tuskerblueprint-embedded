@@ -1,0 +1,476 @@
+<mxfile host="Electron" agent="TuskerBlueprint diagram generator" pages="3">
+  <diagram id="flow" name="Commit to Device (end-to-end)">
+    <mxGraphModel dx="4843" dy="2557" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4880" pageHeight="2060" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="flow-1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=20;" value="&lt;b&gt;TuskerBlueprint Embedded — How a code commit reaches the device&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:12px&#39;&gt;Numbered steps follow one change from a developer commit through PR gating, main-branch CI, release-candidate build/test/sign, Mender promotion and the A/B OTA update with health-gated commit or automatic rollback.&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="2400" x="20" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-2" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="Developer /&lt;br&gt;Release manager" vertex="1">
+          <mxGeometry height="200" width="4820" x="20" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-17" parent="flow-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#6c8ebf;strokeWidth=2;" value="&lt;b&gt;① Develop&lt;/b&gt;&lt;br&gt;Change app/sensornode (Go), meta-sensornode recipes, kas/*.yml or scripts.&lt;br&gt;Local: make app-test · app-build · docs-check; optional local kas build." vertex="1">
+          <mxGeometry height="150" width="330" x="170" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-18" parent="flow-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#6c8ebf;strokeWidth=2;" value="&lt;b&gt;② Commit + push branch, open PR → main&lt;/b&gt;&lt;br&gt;PR template, CODEOWNERS review requested.&lt;br&gt;Add label &lt;i&gt;yocto-build&lt;/i&gt; to request a full image build on the PR." vertex="1">
+          <mxGeometry height="150" width="330" x="540" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-21" parent="flow-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#6c8ebf;strokeWidth=2;" value="&lt;b&gt;⑤ Review, approve, merge to main&lt;/b&gt;&lt;br&gt;All required checks green.&lt;br&gt;Merge commit = the SHA that may later be released." vertex="1">
+          <mxGeometry height="150" width="330" x="920" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-31" parent="flow-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#6c8ebf;strokeWidth=2;" value="&lt;b&gt;⑫ Dispatch release-candidate.yml&lt;/b&gt;&lt;br&gt;inputs: version (semver) + full 40-char source_commit already on main.&lt;br&gt;concurrency group firmware-release-candidate." vertex="1">
+          <mxGeometry height="150" width="330" x="2040" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-38" parent="flow-2" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#6c8ebf;strokeWidth=2;" value="&lt;b&gt;⑲ Dispatch promote-mender.yml&lt;/b&gt;&lt;br&gt;candidate_uri · expected_sha256 · artifact_name · canary_device_ids&lt;br&gt;approval on &lt;b&gt;firmware-production&lt;/b&gt;" vertex="1">
+          <mxGeometry height="150" width="330" x="3190" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-3" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#f5f5f5;strokeColor=#666666;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="GitHub&lt;br&gt;(repo + Actions)" vertex="1">
+          <mxGeometry height="200" width="4820" x="20" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-19" parent="flow-3" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#666666;strokeWidth=2;" value="&lt;b&gt;③ PR checks — pull-request.yml / docs.yml&lt;/b&gt;&lt;br&gt;ubuntu-latest runners:&lt;br&gt;• application: make app-test, app-build&lt;br&gt;• repository: docs-check, python-check, yaml-check, shell-check" vertex="1">
+          <mxGeometry height="160" width="330" x="540" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-22" parent="flow-3" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#666666;strokeWidth=2;" value="&lt;b&gt;⑥ push to main → ci.yml&lt;/b&gt; (Yocto CI Pipeline)&lt;br&gt;concurrency per ref; job queued for self-hosted runner.&lt;br&gt;Also: nightly.yml 02:00 UTC (rm build/tmp, full rebuild, cache refresh)." vertex="1">
+          <mxGeometry height="160" width="330" x="920" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-35" parent="flow-3" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#666666;strokeWidth=2;" value="&lt;b&gt;⑯ Environment gate: firmware-signing&lt;/b&gt;&lt;br&gt;required reviewers approve before the signing job may start." vertex="1">
+          <mxGeometry height="120" width="330" x="2800" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-4" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="Self-hosted runner&lt;br&gt;+ yocto-builder&lt;br&gt;(Ubuntu 24 host)" vertex="1">
+          <mxGeometry height="230" width="4820" x="20" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-20" parent="flow-4" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;④ Optional PR Yocto build&lt;/b&gt; (label yocto-build)&lt;br&gt;runner [self-hosted, linux, yocto]&lt;br&gt;KAS_FILE=kas/ci.yml IMAGE=sensornode-image-ci&lt;br&gt;build-image.sh + run-qemu-tests.sh&lt;br&gt;per-PR cache /srv/yocto-pr-cache/&amp;lt;PR&amp;gt;; no cache push" vertex="1">
+          <mxGeometry height="170" width="330" x="540" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-23" parent="flow-4" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;⑦ Prepare workspace&lt;/b&gt;&lt;br&gt;instant move of old workspace to trash (background rm, nice/ionice)&lt;br&gt;actions/checkout (submodules)&lt;br&gt;make docs-check yaml-check (fast fail)&lt;br&gt;curl MinIO /minio/health/live" vertex="1">
+          <mxGeometry height="170" width="330" x="920" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-24" parent="flow-4" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;⑧ scripts/build-image.sh&lt;/b&gt;&lt;br&gt;prepare-build.sh → docker run stonetusker/yocto-builder&lt;br&gt;kas build --target sensornode-image-ci&lt;br&gt;kas/ci.yml (base + mender) : kas/source-lock.yml&lt;br&gt;qemuarm64 · scarthgap · version 0.3.0-&amp;lt;run#&amp;gt;-&amp;lt;sha&amp;gt;" vertex="1">
+          <mxGeometry height="170" width="330" x="1280" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-26" parent="flow-4" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;⑩ Collect outputs&lt;/b&gt;&lt;br&gt;collect-build-outputs.sh → artifacts/deploy/&lt;br&gt;collect-build-metadata.sh, build-duration-seconds&lt;br&gt;upload-artifact: sensornode-build-outputs" vertex="1">
+          <mxGeometry height="170" width="330" x="1640" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-32" parent="flow-4" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;⑬ build-test job&lt;/b&gt; [self-hosted, linux, yocto]&lt;br&gt;validate inputs · git merge-base --is-ancestor commit origin/main&lt;br&gt;validate_source_lock.py --require-mender&lt;br&gt;build kas/release.yml → sensornode-image-release (+ create-spdx)" vertex="1">
+          <mxGeometry height="170" width="330" x="2040" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-33" parent="flow-4" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;⑭ Test the exact release rootfs&lt;/b&gt;&lt;br&gt;run-release-qemu-tests.sh (direct QEMU, pytest: health, version, sensor)&lt;br&gt;generate-sbom.sh (SPDX from same build)&lt;br&gt;unsigned-candidate.mender + sha256 → upload-artifact (7 d)" vertex="1">
+          <mxGeometry height="170" width="330" x="2400" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-5" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#fff2cc;strokeColor=#d6b656;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="MinIO&lt;br&gt;(cache + evidence)" vertex="1">
+          <mxGeometry height="200" width="4820" x="20" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-25" parent="flow-5" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#d6b656;strokeWidth=2;" value="&lt;b&gt;⑨ Cache read during BitBake&lt;/b&gt;&lt;br&gt;SSTATE_MIRRORS → yocto-sstate&lt;br&gt;PREMIRRORS → yocto-downloads&lt;br&gt;http://host.docker.internal:9000 (miss → upstream fetch)&lt;br&gt;warm build ≈ 2–4 min vs hours cold" vertex="1">
+          <mxGeometry height="150" width="330" x="1280" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-27" parent="flow-5" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#d6b656;strokeWidth=2;" value="&lt;b&gt;⑪ cache-sync.sh push&lt;/b&gt; (main only)&lt;br&gt;mc mirror cache/downloads → yocto-downloads&lt;br&gt;mc mirror cache/sstate → yocto-sstate&lt;br&gt;guarded by CACHE_WRITE_ALLOWED=1; PR builds never write" vertex="1">
+          <mxGeometry height="150" width="330" x="1640" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-34" parent="flow-5" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#d6b656;strokeWidth=2;" value="&lt;b&gt;⑮ Release sstate pushed&lt;/b&gt;&lt;br&gt;cache-sync.sh push (when MinIO write creds set)" vertex="1">
+          <mxGeometry height="110" width="330" x="2400" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-37" parent="flow-5" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;strokeColor=#d6b656;strokeWidth=2;" value="&lt;b&gt;⑱ publish_candidate.py&lt;/b&gt;&lt;br&gt;minio://release-evidence/&amp;lt;ver&amp;gt;/&amp;lt;sha&amp;gt;/&lt;br&gt;signed .mender · sha256 · manifest · sbom/ · release-qemu/&lt;br&gt;fails if namespace exists (immutable)" vertex="1">
+          <mxGeometry height="150" width="330" x="2800" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-6" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="Jenkins&lt;br&gt;(parallel diagnostic&lt;br&gt;path)" vertex="1">
+          <mxGeometry height="200" width="4820" x="20" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-28" parent="flow-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#b85450;strokeWidth=2;" value="&lt;b&gt;J1 · sensornode-diagnostic-build&lt;/b&gt;&lt;br&gt;manual / scheduled on agent ubuntu24 (yocto-vps8)&lt;br&gt;Checkout SOURCE_COMMIT → Validate (docs, app, python, shell)" vertex="1">
+          <mxGeometry height="150" width="330" x="920" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-29" parent="flow-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#b85450;strokeWidth=2;" value="&lt;b&gt;J2 · Build + QEMU test&lt;/b&gt;&lt;br&gt;same scripts: build-image.sh, run-qemu-tests.sh&lt;br&gt;bitbake -c testimage (oeqa: ping, ssh, systemd, SensorNodeRuntimeTest) → JUnit&lt;br&gt;FAILURE_DRILL → sensornode-image-broken" vertex="1">
+          <mxGeometry height="150" width="330" x="1280" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-30" parent="flow-6" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#b85450;strokeWidth=2;" value="&lt;b&gt;J3 · Diagnostic evidence&lt;/b&gt;&lt;br&gt;create-diagnostic-bundle.sh (logs redacted), JUnit, archive.&lt;br&gt;On failure: (roadmap) Claude via MCP proposes fix → human approves one rebuild.&lt;br&gt;&lt;b&gt;Jenkins cannot promote to Mender.&lt;/b&gt;" vertex="1">
+          <mxGeometry height="150" width="330" x="1640" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-7" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="Protected release&lt;br&gt;runner (signing /&lt;br&gt;production env)" vertex="1">
+          <mxGeometry height="200" width="4820" x="20" y="1170" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-36" parent="flow-7" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;strokeColor=#9673a6;strokeWidth=2;" value="&lt;b&gt;⑰ sign-publish job&lt;/b&gt; [self-hosted, linux, release]&lt;br&gt;download unsigned artifact · build isolated publish set&lt;br&gt;sign-artifact.sh (mender-artifact sign, key 0600) · recompute sha256" vertex="1">
+          <mxGeometry height="150" width="330" x="2800" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-39" parent="flow-7" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#9673a6;strokeWidth=2;" value="&lt;b&gt;⑳ promote job&lt;/b&gt;&lt;br&gt;fetch_candidate.py (verify SHA-256)&lt;br&gt;upload-mender-artifact.sh → management API&lt;br&gt;create-mender-deployment.sh → &lt;b&gt;canary only&lt;/b&gt;" vertex="1">
+          <mxGeometry height="150" width="330" x="3190" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-8" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#ffe6cc;strokeColor=#d79b00;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="Mender server&lt;br&gt;(docker.mender.io)" vertex="1">
+          <mxGeometry height="200" width="4820" x="20" y="1370" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-40" parent="flow-8" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#d79b00;strokeWidth=2;" value="&lt;b&gt;㉑ Artifact + deployment in Mender&lt;/b&gt;&lt;br&gt;deployments service stores artifact (S3);&lt;br&gt;Release sensornode-&amp;lt;ver&amp;gt;-&amp;lt;build&amp;gt;-&amp;lt;sha&amp;gt;;&lt;br&gt;deployment targets canary device IDs" vertex="1">
+          <mxGeometry height="150" width="330" x="3190" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-41" parent="flow-8" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#666666;strokeWidth=2;" value="&lt;b&gt;Demo path today&lt;/b&gt;: mender/demo-scenarios/run-ota-e2e.sh&lt;br&gt;logs in (useradm), accepts device auth set,&lt;br&gt;uploads 102 (good) / 103-broken .mender, creates deployments,&lt;br&gt;waits for status, saves evidence to artifacts/ota/&amp;lt;run&amp;gt;/" vertex="1">
+          <mxGeometry height="150" width="330" x="3560" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-47" parent="flow-8" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#d79b00;strokeWidth=2;" value="&lt;b&gt;㉖ Deployment result&lt;/b&gt;&lt;br&gt;success → separate decision to widen&lt;br&gt;canary → pilot → fleet (roadmap)&lt;br&gt;failure → stop rollout, keep evidence" vertex="1">
+          <mxGeometry height="150" width="330" x="4330" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-48" parent="flow-8" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#666666;strokeWidth=2;" value="&lt;b&gt;㉗ Evidence&lt;/b&gt;&lt;br&gt;artifacts/ota/&amp;lt;run&amp;gt;/summary.json, API responses, device logs, serial.log, SHA256SUMS → docs/15-evidence" vertex="1">
+          <mxGeometry height="150" width="330" x="3940" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-9" parent="1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=150;fillColor=#b1ddf0;strokeColor=#10739e;swimlaneFillColor=#ffffff;fontSize=13;fontStyle=1;container=1;collapsible=0;" value="QEMU device&lt;br&gt;sensornode-canary-01" vertex="1">
+          <mxGeometry height="370" width="4820" x="20" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-42" parent="flow-9" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#10739e;strokeWidth=2;" value="&lt;b&gt;㉒ Device picks up deployment&lt;/b&gt;&lt;br&gt;mender client polls https://docker.mender.io&lt;br&gt;(QEMU slirp 10.0.2.2 → host :443)&lt;br&gt;download → verify (ArtifactVerifyKey: roadmap)&lt;br&gt;write image to &lt;b&gt;inactive rootfs B&lt;/b&gt;" vertex="1">
+          <mxGeometry height="150" width="330" x="3580" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-43" parent="flow-9" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#10739e;strokeWidth=2;" value="&lt;b&gt;㉓ Switch + reboot&lt;/b&gt;&lt;br&gt;mark B as next boot (GRUB env)&lt;br&gt;reboot: UEFI → GRUB → kernel → systemd on B&lt;br&gt;sensornode.service starts" vertex="1">
+          <mxGeometry height="150" width="330" x="3940" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-44" parent="flow-9" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;strokeColor=#b85450;strokeWidth=2;" value="&lt;b&gt;㉔ Health gate&lt;/b&gt;&lt;br&gt;ArtifactCommit_Enter_50&lt;br&gt;_sensornode-health&lt;br&gt;service active?&lt;br&gt;/health 200?&lt;br&gt;no failed units?" vertex="1">
+          <mxGeometry height="180" width="220" x="4310" y="15" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-45" parent="flow-9" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#82b366;strokeWidth=2;" value="&lt;b&gt;㉕a PASS → commit B&lt;/b&gt;&lt;br&gt;B becomes permanent;&lt;br&gt;report success.&lt;br&gt;/version shows new image_version." vertex="1">
+          <mxGeometry height="110" width="210" x="4570" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-46" parent="flow-9" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;strokeColor=#b85450;strokeWidth=2;" value="&lt;b&gt;㉕b FAIL → rollback&lt;/b&gt;&lt;br&gt;no commit; Mender reboots to rootfs A,&lt;br&gt;reports failure; device keeps serving&lt;br&gt;the last good version." vertex="1">
+          <mxGeometry height="110" width="300" x="4270" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-10" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;A · Develop&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="340" x="190" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-11" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;B · Pull-request gate&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="350" x="560" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-12" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;C · Merge + main CI (every push to main)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="1090" x="940" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-13" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;D · Release candidate (manual)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="730" x="2060" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-14" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;E · Sign + publish&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="360" x="2820" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-15" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;F · Promote&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="360" x="3210" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-16" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;spacing=6;" value="&lt;b&gt;G · OTA on device&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="1230" x="3600" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-49" edge="1" parent="1" source="flow-17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-18" value="git push">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-50" edge="1" parent="1" source="flow-18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-19" value="pull_request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-51" edge="1" parent="1" source="flow-19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;" target="flow-20" value="label yocto-build">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-52" edge="1" parent="1" source="flow-19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" target="flow-21" value="checks green">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-53" edge="1" parent="1" source="flow-21" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-22" value="merge → push main">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-54" edge="1" parent="1" source="flow-22" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-23" value="runs-on: self-hosted">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-55" edge="1" parent="1" source="flow-23" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-56" edge="1" parent="1" source="flow-24" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;startArrow=block;startFill=1;" target="flow-25" value="read cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-57" edge="1" parent="1" source="flow-24" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-26" value="image built">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-58" edge="1" parent="1" source="flow-26" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-27" value="main only">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-59" edge="1" parent="1" source="flow-22" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.1;exitY=1;exitDx=0;exitDy=0;entryX=0.1;entryY=0;entryDx=0;entryDy=0;" target="flow-28" value="SCM / manual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-60" edge="1" parent="1" source="flow-28" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-29" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-61" edge="1" parent="1" source="flow-29" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-30" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-62" edge="1" parent="1" source="flow-25" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" target="flow-29" value="same cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-63" edge="1" parent="1" source="flow-26" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" target="flow-31" value="main is green →&lt;br&gt;release decision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-64" edge="1" parent="1" source="flow-31" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="flow-32" value="workflow_dispatch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-65" edge="1" parent="1" source="flow-32" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-33" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-66" edge="1" parent="1" source="flow-33" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-34" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-67" edge="1" parent="1" source="flow-33" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="flow-35" value="needs: build-test">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-68" edge="1" parent="1" source="flow-35" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-36" value="approved">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-69" edge="1" parent="1" source="flow-36" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;" target="flow-37" value="signed candidate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-70" edge="1" parent="1" source="flow-37" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" target="flow-38" value="candidate URI + sha256">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-71" edge="1" parent="1" source="flow-38" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-39" value="workflow_dispatch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-72" edge="1" parent="1" source="flow-37" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" target="flow-39" value="fetch exact object">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-73" edge="1" parent="1" source="flow-39" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d79b00;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-40" value="Mender management API">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-74" edge="1" parent="1" source="flow-41" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="flow-40" value="demo shortcut">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-75" edge="1" parent="1" source="flow-40" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d79b00;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.9;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" target="flow-42" value="deployment pending&lt;br&gt;for canary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-76" edge="1" parent="1" source="flow-42" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-43" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-77" edge="1" parent="1" source="flow-43" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-44" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-78" edge="1" parent="1" source="flow-44" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-45" value="pass">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-79" edge="1" parent="1" source="flow-44" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="flow-46" value="fail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-80" edge="1" parent="1" source="flow-45" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.85;entryY=1;entryDx=0;entryDy=0;" target="flow-47" value="status: success">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-81" edge="1" parent="1" source="flow-46" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=0.05;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" target="flow-47" value="status: failure">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4305" y="1515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-82" edge="1" parent="1" source="flow-47" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" target="flow-48" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-83" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Gates that stop a bad change&lt;/b&gt;&lt;br&gt;B: unit tests, spec/YAML/shell validation · C: Yocto build + validation must pass on main · D: commit must be on main, source lock pinned, exact release rootfs must pass QEMU tests · E: firmware-signing reviewers, isolated key, write-once publication · F: firmware-production reviewers, SHA-256 match, canary only · G: on-device health gate with automatic A/B rollback · Jenkins FAILURE_DRILL proves a broken image is stopped in CI." vertex="1">
+          <mxGeometry height="70" width="3200" x="20" y="1960" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-84" parent="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;" value="&lt;b&gt;Status (2026-11-13)&lt;/b&gt;: steps ①–⑪, J1–J3, ㉒–㉗ proven on the host (EVID-003/004). Release signing ⑯–⑱ and pipeline promotion ⑲–㉑ are implemented as workflows but not yet run end-to-end; the demo uploads artifacts with run-ota-e2e.sh. MCP/Claude diagnostics are roadmap." vertex="1">
+          <mxGeometry height="70" width="1600" x="3240" y="1960" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="ota" name="OTA A/B update + rollback">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1460" pageHeight="740" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ota-1" value="&lt;b&gt;Device-side OTA: Mender A/B update with SensorNode health gate&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:12px&#39;&gt;meta-mender (mender-full) on qemuarm64 · /dev/vda · UEFI + GRUB · state script ArtifactCommit_Enter_50_sensornode-health (meta-sensornode/dynamic-layers/mender)&lt;/font&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="10" width="1500" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-2" value="&lt;b&gt;Idle on rootfs A&lt;/b&gt;&lt;br&gt;committed, healthy&lt;br&gt;e.g. 0.3.0-101 (factory)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-3" value="&lt;b&gt;Poll server&lt;/b&gt;&lt;br&gt;GET /api/devices/v1/deployments/&lt;br&gt;device/deployments/next" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="120" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-4" value="&lt;b&gt;Download&lt;/b&gt;&lt;br&gt;stream .mender artifact&lt;br&gt;(deployments S3 URL)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="600" y="120" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-5" value="&lt;b&gt;Verify&lt;/b&gt;&lt;br&gt;device_type qemuarm64 compatible&lt;br&gt;signature (ArtifactVerifyKey — roadmap)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="880" y="120" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-6" value="&lt;b&gt;Install to inactive slot&lt;/b&gt;&lt;br&gt;write rootfs B on /dev/vda" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="120" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-7" value="&lt;b&gt;Mark B for next boot&lt;/b&gt;&lt;br&gt;GRUB env: upgrade_available=1,&lt;br&gt;mender_boot_part=B" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="290" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-8" value="&lt;b&gt;Reboot&lt;/b&gt;&lt;br&gt;UEFI → GRUB → kernel → systemd (B)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="880" y="290" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-9" value="&lt;b&gt;ArtifactCommit_Enter&lt;/b&gt;&lt;br&gt;run state scripts on B" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="600" y="290" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-10" value="&lt;b&gt;sensornode-health&lt;/b&gt;&lt;br&gt;1. systemctl is-active sensornode&lt;br&gt;2. curl :8080/health (5 s)&lt;br&gt;3. systemctl --failed empty" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=center;verticalAlign=middle;spacing=6;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="300" y="260" width="260" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-11" value="&lt;b&gt;Commit B&lt;/b&gt;&lt;br&gt;upgrade_available=0&lt;br&gt;B is now active slot&lt;br&gt;e.g. 0.3.0-102" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="470" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-12" value="&lt;b&gt;Report success&lt;/b&gt;&lt;br&gt;deployment status: success&lt;br&gt;inventory updated" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-13" value="&lt;b&gt;ArtifactRollback&lt;/b&gt;&lt;br&gt;no commit; restore boot to A" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="600" y="470" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-14" value="&lt;b&gt;Reboot to A&lt;/b&gt;&lt;br&gt;last known good version" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="880" y="470" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-15" value="&lt;b&gt;Report failure&lt;/b&gt;&lt;br&gt;deployment status: failure&lt;br&gt;rollout stops (no wider deployment)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="470" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-16" value="&lt;b&gt;Boot-level safety net&lt;/b&gt;&lt;br&gt;If B never reaches userspace (kernel panic, hang), GRUB sees upgrade_available=1 with bootcount exhausted and falls back to A — same rollback path." style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-17" value="&lt;b&gt;Why the broken demo release is caught&lt;/b&gt;&lt;br&gt;sensornode-image-release-broken sets SENSORNODE_FAILURE_MODE so /health returns 503. The image boots fine — only the application-level health gate refuses the commit, and the device heals itself (proven EVID-004, rollback ≈ 4–5 min)." style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="620" width="770" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-18" value="timer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-2" target="ota-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-19" value="deployment" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-3" target="ota-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-4" target="ota-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-21" value="ok" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-5" target="ota-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-6" target="ota-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-7" target="ota-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-24" value="boot B" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-8" target="ota-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10739e;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-9" target="ota-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-26" value="nothing pending" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#999999;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ota-3" target="ota-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="435" y="100" />
+              <mxPoint x="155" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ota-27" value="verify fails" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ota-5" target="ota-15">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="995" y="100" />
+              <mxPoint x="1440" y="100" />
+              <mxPoint x="1440" y="515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ota-28" value="pass" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-10" target="ota-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-11" target="ota-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-30" value="fail" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ota-10" target="ota-13">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="335" />
+              <mxPoint x="580" y="440" />
+              <mxPoint x="715" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ota-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-13" target="ota-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ota-14" target="ota-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ota-33" value="now idle on B (roles swap)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ota-12" target="ota-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="20" y="515" />
+              <mxPoint x="20" y="165" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="jenk" name="Jenkins diagnostic + AI approval">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1540" pageHeight="590" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="jenk-1" value="&lt;b&gt;Jenkins diagnostic pipeline and human-approved AI loop&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:12px&#39;&gt;ci/jenkins/Jenkinsfile · job sensornode-diagnostic-build · agent label yocto-vps8 · Jenkins is a parallel diagnostic path; GitHub Actions remains authoritative and only it can release.&lt;/font&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="10" width="1500" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-2" value="&lt;b&gt;Checkout&lt;/b&gt;&lt;br&gt;SOURCE_COMMIT (branch / sha)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="130" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-3" value="&lt;b&gt;Validate&lt;/b&gt;&lt;br&gt;make docs-check app-test&lt;br&gt;python-check shell-check" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="290" y="130" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-4" value="&lt;b&gt;Build and QEMU Test&lt;/b&gt;&lt;br&gt;IMAGE = sensornode-image-ci&lt;br&gt;(FAILURE_DRILL → -broken)&lt;br&gt;build-image.sh · run-qemu-tests.sh" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="540" y="120" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-5" value="&lt;b&gt;Diagnostic Evidence&lt;/b&gt;&lt;br&gt;create-diagnostic-bundle.sh&lt;br&gt;redact_build_logs.py · archive&lt;br&gt;JUnit (oeqa-junit.xml)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="830" y="120" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-6" value="Result?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="125" width="120" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-7" value="&lt;b&gt;SUCCESS&lt;/b&gt;&lt;br&gt;green build, tests published" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="130" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-8" value="&lt;b&gt;MCP read-only tools&lt;/b&gt; (roadmap)&lt;br&gt;get logs, JUnit, bundle, build properties" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#999999;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="290" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-9" value="&lt;b&gt;Claude&lt;/b&gt; (roadmap)&lt;br&gt;classify failure, cite evidence,&lt;br&gt;propose fix / REBUILD_COMMIT&lt;br&gt;(docs/10-ai-governance format)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#999999;fontSize=11;align=center;verticalAlign=middle;spacing=6;dashed=1;dashPattern=6 4;" vertex="1" parent="1">
+          <mxGeometry x="760" y="290" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-10" value="&lt;b&gt;Human Approval for Rebuild&lt;/b&gt;&lt;br&gt;input step · submitter embedded-release-approvers&lt;br&gt;only when DIAGNOSTIC_REBUILD=true" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="400" y="290" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-11" value="&lt;b&gt;Approved Rebuild&lt;/b&gt;&lt;br&gt;optional checkout REBUILD_COMMIT&lt;br&gt;always IMAGE=sensornode-image-ci&lt;br&gt;build + QEMU test → SUCCESS" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="290" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-12" value="&lt;b&gt;Hard boundaries&lt;/b&gt;&lt;br&gt;• AI is advisory, least-privileged, cannot approve or promote&lt;br&gt;• one controlled rebuild per approval&lt;br&gt;• Jenkins never uploads to Mender or writes release-evidence&lt;br&gt;• post: always bundle + archive evidence" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;align=left;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="600" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-2" target="jenk-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-3" target="jenk-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-15" value="pass or fail&lt;br&gt;(caught)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-4" target="jenk-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-5" target="jenk-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-17" value="SUCCESS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-6" target="jenk-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-18" value="FAILURE" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-6" target="jenk-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-19" value="evidence" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#999999;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;" edge="1" parent="1" source="jenk-8" target="jenk-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-20" value="proposal" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#999999;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;" edge="1" parent="1" source="jenk-9" target="jenk-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-21" value="Approve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="jenk-10" target="jenk-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jenk-22" value="re-collect evidence" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;strokeWidth=1.5;fontSize=10;endArrow=block;endFill=1;labelBackgroundColor=#ffffff;dashed=1;dashPattern=6 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="jenk-11" target="jenk-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="420" />
+              <mxPoint x="720" y="420" />
+              <mxPoint x="720" y="250" />
+              <mxPoint x="955" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
