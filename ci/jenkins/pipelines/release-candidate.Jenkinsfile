@@ -177,7 +177,11 @@ pipeline {
               --destination "minio://release-evidence/${VERSION}/${SOURCE_COMMIT}"
 
             # Everything sensornode-promote-mender needs, printed and archived.
-            artifact_name="$(mender-artifact read "$publish/$name" | awk '$1 == "Name:" {print $2; exit}')"
+            # Read the whole output first: an early exit in the reader would stop
+            # mender-artifact with SIGPIPE (exit 141), which pipefail turns into a failure.
+            artifact_info="$(mender-artifact read "$publish/$name" 2>/dev/null)"
+            artifact_name="$(awk '$1 == "Name:" {print $2}' <<<"$artifact_info" | head -n 1)"
+            [[ -n "$artifact_name" ]] || { echo "could not read the Mender artifact name" >&2; exit 1; }
             {
               echo "CANDIDATE_URI=minio://release-evidence/${VERSION}/${SOURCE_COMMIT}/${name}"
               echo "EXPECTED_SHA256=$(sha256sum "$publish/$name" | awk '{print $1}')"
