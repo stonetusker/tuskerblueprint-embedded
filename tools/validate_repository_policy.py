@@ -5,14 +5,15 @@ import re
 import sys
 from pathlib import Path
 
+from repo_files import repo_files
+
 
 def main() -> int:
     root = Path('.').resolve()
     failures = []
 
-    prohibited_files = []
-    for pattern in ('*.pem', '*.key', 'id_rsa', 'id_ed25519'):
-        prohibited_files.extend(p for p in root.rglob(pattern) if '.git' not in p.parts)
+    prohibited_files = [p for p in repo_files(root)
+                        if p.suffix in {'.pem', '.key'} or p.name in {'id_rsa', 'id_ed25519'}]
     if prohibited_files:
         failures.append('prohibited credential-like files: ' + ', '.join(str(p.relative_to(root)) for p in prohibited_files))
 

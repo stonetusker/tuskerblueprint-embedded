@@ -5,13 +5,15 @@ import re
 import sys
 from pathlib import Path
 
+from repo_files import repo_files
+
 ID = re.compile(r"\b(?:BUS-OBJ|PRD-REQ|SYS-REQ|SWE-REQ|BLD-REQ|CI-REQ|QEMU-REQ|OTA-REQ|SEC-REQ|OPS-REQ|AI-REQ|CONTENT-REQ|ARCH|COMP|INT|ADR|TEST|RUN|RISK|EVID)-[A-Z0-9-]*\d{3}\b")
 TEST = re.compile(r"\bTEST-[A-Z]+-\d{3}\b")
 
 
 def main() -> int:
     root = Path(".").resolve()
-    texts = {p: p.read_text(encoding="utf-8") for p in root.rglob("*.md") if not any(part in {".git", ".venv", ".pytest_cache", "__pycache__"} for part in p.parts)}
+    texts = {p: p.read_text(encoding="utf-8") for p in repo_files(root, (".md",)) if not any(part in {".git", ".venv", ".pytest_cache", "__pycache__"} for part in p.parts)}
     declared = set()
     for text in texts.values():
         match = re.search(r"^id:\s*(\S+)\s*$", text, re.M)

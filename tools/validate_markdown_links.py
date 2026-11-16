@@ -5,6 +5,8 @@ import re
 import sys
 from pathlib import Path
 
+from repo_files import repo_files
+
 LINK = re.compile(r'\[[^\]]+\]\(([^)]+)\)')
 SKIP_PARTS = {'.git', '.venv', '.pytest_cache', '__pycache__', 'build'}
 
@@ -13,7 +15,7 @@ def main() -> int:
     root = Path('.').resolve()
     broken = []
     count = 0
-    for path in sorted(root.rglob('*.md')):
+    for path in repo_files(root, ('.md',)):
         if any(part in SKIP_PARTS for part in path.parts):
             continue
         count += 1

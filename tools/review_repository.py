@@ -8,6 +8,8 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+from repo_files import repo_files
+
 
 def command(name, args, cwd):
     result = subprocess.run(args, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -34,9 +36,9 @@ def main() -> int:
         command('Go tests', ['go', 'test', './...'], root / 'app/sensornode'),
         command('SensorNode endpoint integration', ['bash', 'scripts/test-sensornode-integration.sh'], root),
     ]
-    executable = [p for p in root.rglob('*.sh') if not (p.stat().st_mode & 0o111)]
+    executable = [p for p in repo_files(root, ('.sh',)) if not (p.stat().st_mode & 0o111)]
     checks.append(('Shell executable permissions', not executable, '\n'.join(map(str, executable)) or 'all shell scripts executable'))
-    native = [p for p in root.rglob('*') if p.is_file() and p.suffix in {'.bb', '.bbappend', '.conf', '.inc'}]
+    native = repo_files(root, ('.bb', '.bbappend', '.conf', '.inc'))
     checks.append(('Yocto layer assets', len(native) >= 10, f'{len(native)} native Yocto metadata files'))
     release_pipeline = (root / 'ci/jenkins/pipelines/release-candidate.Jenkinsfile').read_text(encoding='utf-8')
     source_lock_enforced = ("SOURCE_LOCK_CONFIG = 'kas/source-lock.yml'" in release_pipeline

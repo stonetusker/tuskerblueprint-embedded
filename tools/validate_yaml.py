@@ -4,19 +4,18 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 import yaml
+from repo_files import repo_files
 
 
 def main() -> int:
     failures = []
     count = 0
-    for path in sorted(Path('.').rglob('*')):
-        if path.suffix not in {'.yml', '.yaml'} or any(part in {'.git', '.venv', 'build'} for part in path.parts):
-            continue
+    for path in repo_files('.', ('.yml', '.yaml')):
         count += 1
         try:
             list(yaml.safe_load_all(path.read_text(encoding='utf-8')))
         except Exception as exc:
-            failures.append(f'{path}: {exc}')
+            failures.append(f'{path.relative_to(Path.cwd().resolve())}: {exc}')
     if failures:
         print('\n'.join(failures), file=sys.stderr)
         return 1

@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from repo_files import repo_files
 
 REQUIRED = {"id", "title", "status", "version", "owner", "reviewers", "created", "updated", "traces_to", "verified_by"}
 ALLOWED_STATUS = {"Draft", "In Review", "Approved", "Implemented", "Verified", "Deprecated", "Superseded", "Proposed"}
@@ -54,7 +55,7 @@ def main() -> int:
     root = Path(args.root).resolve()
     ids = {}
     failures = []
-    files = sorted(root.rglob("*.md"))
+    files = repo_files(root, (".md",))
     processed = 0
     for path in files:
         rel = path.relative_to(root)

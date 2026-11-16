@@ -61,6 +61,7 @@ CHANGES.md
 /cache.old/
 /artifacts/
 /qemu-fleet/state/
+/bin/
 /.benchmark-*/
 
 # Host-local configuration (may hold tokens)
