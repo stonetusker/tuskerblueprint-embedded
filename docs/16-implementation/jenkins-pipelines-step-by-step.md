@@ -45,7 +45,7 @@ scripts/configure-jenkins-job.sh                 # creates missing jobs, leaves 
 scripts/configure-jenkins-job.sh --update sensornode-ci   # replace one job's definition
 ```
 
-Replacing a pipeline job's definition drops the parameters that Declarative Pipeline registers on its first run. After `--update`, run the job once (it will fail fast or can be aborted) so **Build with Parameters** appears again.
+The job definitions declare the same parameters as their Jenkinsfiles, so **Build with Parameters** is available from the first run; `make pipeline-check` fails if the two drift apart. A job created before 2026-11-17 without them only learns its parameters after one run; the first manual run then fails with `VERSION: unbound variable` (or similar) and the next one shows the form.
 
 ## 2. Branch and pull-request builds (`sensornode-ci`)
 

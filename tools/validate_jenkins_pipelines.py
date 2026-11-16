@@ -14,6 +14,7 @@ enforce the release boundaries that the pipelines are built around:
 """
 from __future__ import annotations
 
+import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -29,6 +30,14 @@ PIPELINES = {
 }
 RELEASE_ONLY = ('sign-artifact.sh', 'upload-mender-artifact.sh', 'create-mender-deployment.sh',
                 'publish_candidate.py', 'mender-signing', 'mender-access-token')
+
+
+def jenkinsfile_parameters(text: str) -> list[str]:
+    """Names declared in a Declarative Pipeline `parameters { ... }` block."""
+    block = re.search(r"\bparameters\s*\{(.*?)\n\s*\}", text, re.S)
+    if not block:
+        return []
+    return re.findall(r"\b(?:string|booleanParam|choice|text|password)\(\s*name:\s*'([A-Za-z0-9_]+)'", block.group(1))
 
 
 def code_lines(text: str) -> str:
@@ -67,6 +76,14 @@ def main() -> int:
         referenced.add(target.resolve())
         if not target.is_file():
             failures.append(f'{template}: scriptPath {script.text.strip()} does not exist')
+            continue
+        # A pipeline job only learns parameters declared in its Jenkinsfile after the first
+        # run, so the job definition must declare them too (multibranch jobs are exempt).
+        if 'MultiBranch' not in tree.getroot().tag:
+            declared = jenkinsfile_parameters(target.read_text(encoding='utf-8'))
+            defined = [n.text for n in tree.findall('.//parameterDefinitions/*/name')]
+            if sorted(declared) != sorted(defined):
+                failures.append(f'{template}: parameters {sorted(defined)} do not match {script.text.strip()} {sorted(declared)}')
     for path in PIPELINES.values():
         if path.is_file() and path.resolve() not in referenced:
             failures.append(f'{path}: no job definition in ci/jenkins/job-config references it')

@@ -45,6 +45,10 @@ pipeline {
           steps {
             sh '''#!/bin/bash
               set -Eeuo pipefail
+              if [[ -z "${VERSION:-}" || -z "${SOURCE_COMMIT:-}" ]]; then
+                echo "VERSION and SOURCE_COMMIT are required: use Build with Parameters." >&2
+                exit 1
+              fi
               [[ "$VERSION" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || { echo "VERSION must be a semantic version" >&2; exit 1; }
               [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo "SOURCE_COMMIT must be a full 40-character commit" >&2; exit 1; }
             '''
@@ -132,7 +136,7 @@ pipeline {
     }
 
     stage('Approve signing') {
-      when { expression { params.SIGN_AND_PUBLISH } }
+      when { expression { params.SIGN_AND_PUBLISH != false } }
       steps {
         input message: "Sign and publish SensorNode ${params.VERSION} built from ${params.SOURCE_COMMIT}?",
               ok: 'Sign candidate',
@@ -141,7 +145,7 @@ pipeline {
     }
 
     stage('Sign and publish') {
-      when { expression { params.SIGN_AND_PUBLISH } }
+      when { expression { params.SIGN_AND_PUBLISH != false } }
       agent { label 'firmware-release' }
       environment {
         SIGNING_KEY = '/var/lib/tusker-release/mender-signing.pem'

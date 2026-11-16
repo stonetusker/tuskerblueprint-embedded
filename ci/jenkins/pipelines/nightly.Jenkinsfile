@@ -2,7 +2,8 @@
 //
 // Replaces the former GitHub Actions nightly and manual build-image workflows.
 // Runs on main every night at 02:00 UTC; "Build with Parameters" runs it on
-// demand (for example without the cache publish).
+// demand (for example without the cache publish). Missing parameters (a job's
+// very first run) mean the defaults: every stage runs.
 
 def publishCache() {
   withEnv(['CACHE_WRITE_ALLOWED=1']) {
@@ -50,7 +51,7 @@ pipeline {
 
   stages {
     stage('Clean build/tmp') {
-      when { expression { params.CLEAN_TMP } }
+      when { expression { params.CLEAN_TMP != false } }
       steps { sh 'rm -rf build/tmp' }
     }
 
@@ -64,12 +65,12 @@ pipeline {
     }
 
     stage('QEMU test') {
-      when { expression { params.QEMU_TEST } }
+      when { expression { params.QEMU_TEST != false } }
       steps { sh 'scripts/run-qemu-tests.sh' }
     }
 
     stage('Publish cache') {
-      when { expression { params.PUSH_CACHE } }
+      when { expression { params.PUSH_CACHE != false } }
       steps { script { publishCache() } }
     }
   }

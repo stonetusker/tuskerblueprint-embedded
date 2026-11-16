@@ -4,6 +4,25 @@
   <description>SensorNode nightly regression build at 02:00 UTC: clean build/tmp, Yocto build, QEMU test, MinIO cache refresh.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>CLEAN_TMP</name>
+          <description>Remove build/tmp first (keeps downloads and sstate) so the run is a regression build</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>QEMU_TEST</name>
+          <description>Run the QEMU runtime tests after the build</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>PUSH_CACHE</name>
+          <description>Publish the refreshed downloads and sstate to MinIO</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <hudson.triggers.TimerTrigger>

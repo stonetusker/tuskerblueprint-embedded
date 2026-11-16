@@ -32,6 +32,9 @@ pipeline {
       steps {
         sh '''#!/bin/bash
           set -Eeuo pipefail
+          for v in CANDIDATE_URI EXPECTED_SHA256 ARTIFACT_NAME CANARY_DEVICE_IDS; do
+            [[ -n "${!v:-}" ]] || { echo "$v is required: use Build with Parameters." >&2; exit 1; }
+          done
           [[ "$CANDIDATE_URI" == minio://release-evidence/* ]] || { echo "CANDIDATE_URI must point into release-evidence" >&2; exit 1; }
           [[ "$EXPECTED_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "EXPECTED_SHA256 must be 64 hex characters" >&2; exit 1; }
           [[ -n "$ARTIFACT_NAME" && -n "$CANARY_DEVICE_IDS" ]] || { echo "ARTIFACT_NAME and CANARY_DEVICE_IDS are required" >&2; exit 1; }

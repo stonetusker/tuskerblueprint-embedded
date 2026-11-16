@@ -3,7 +3,35 @@
   <actions/>
   <description>Promote a signed candidate to Mender: verify SHA-256, upload, and deploy to canary devices only, after firmware-production-approvers approve. Runs on the firmware-release agent.</description>
   <keepDependencies>false</keepDependencies>
-  <properties></properties>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>CANDIDATE_URI</name>
+          <description>Immutable candidate URI, e.g. minio://release-evidence/0.4.0/&lt;commit&gt;/sensornode-0.4.0-&lt;commit&gt;.mender</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>EXPECTED_SHA256</name>
+          <description>Expected SHA-256 of the signed candidate</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ARTIFACT_NAME</name>
+          <description>Mender artifact name, e.g. sensornode-0.4.0-12-1a2b3c4</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CANARY_DEVICE_IDS</name>
+          <description>Comma-separated Mender device IDs for the canary deployment</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty></properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition">
     <scm class="hudson.plugins.git.GitSCM">
       <configVersion>2</configVersion>

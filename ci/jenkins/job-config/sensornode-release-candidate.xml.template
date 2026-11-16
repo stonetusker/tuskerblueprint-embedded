@@ -3,7 +3,28 @@
   <actions/>
   <description>SensorNode release candidate: build and test the exact release image from a commit on main, collect the SBOM, then (after firmware-signing-approvers approve) sign on the firmware-release agent and publish write-once to MinIO.</description>
   <keepDependencies>false</keepDependencies>
-  <properties></properties>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>VERSION</name>
+          <description>Semantic version, for example 0.4.0</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>SOURCE_COMMIT</name>
+          <description>Full 40-character commit that is already on main</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>SIGN_AND_PUBLISH</name>
+          <description>After approval, sign on the firmware-release agent and publish the immutable candidate</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty></properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition">
     <scm class="hudson.plugins.git.GitSCM">
       <configVersion>2</configVersion>

@@ -3,7 +3,33 @@
   <actions/>
   <description>SensorNode Yocto diagnostic pipeline: build, QEMU test and evidence bundle; FAILURE_DRILL proves a broken image is stopped. AI is read-only; a rebuild requires human approval. This job cannot sign or deploy.</description>
   <keepDependencies>false</keepDependencies>
-  <properties></properties>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>SOURCE_COMMIT</name>
+          <description>Commit or branch to diagnose</description>
+          <defaultValue>main</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>REBUILD_COMMIT</name>
+          <description>Optional reviewed commit for an approved rebuild</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DIAGNOSTIC_REBUILD</name>
+          <description>Permit the approval stage to offer a rebuild</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>FAILURE_DRILL</name>
+          <description>Build sensornode-image-broken first to produce a controlled, diagnosable failure</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty></properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition">
     <scm class="hudson.plugins.git.GitSCM">
       <configVersion>2</configVersion>
