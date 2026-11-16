@@ -16,7 +16,6 @@ MENDER_URL="${MENDER_URL:-https://docker.mender.io}"
 JENKINS_URL="${JENKINS_URL:-http://127.0.0.1:8088}"
 MINIO_CONSOLE_URL="${MINIO_CONSOLE_URL:-http://127.0.0.1:9001}"
 DEMO_INPUTS="${DEMO_INPUTS:-$HOME/tbtest/ota-inputs}"
-RUNNER_UNIT="${RUNNER_UNIT:-actions.runner.stonetusker-tuskerblueprint-embedded.subeesh-ubuntu24-laptop.service}"
 AGENT_UNIT="${AGENT_UNIT:-jenkins-agent.service}"
 WAIT_SECONDS="${WAIT_SECONDS:-180}"
 
@@ -45,7 +44,7 @@ mender_compose() {
 }
 
 # 1. systemd services that should have come back on their own
-for unit in docker.service "$RUNNER_UNIT" "$AGENT_UNIT"; do
+for unit in docker.service "$AGENT_UNIT"; do
   if ! systemctl is-active --quiet "$unit" && (( ! check_only )); then
     info "starting $unit"
     sudo systemctl start "$unit"

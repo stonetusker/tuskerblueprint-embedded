@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - ARCH-001
 verified_by:
@@ -21,4 +21,4 @@ verified_by:
 
 It returns zero only when BitBake completes and required outputs exist. It writes a stable metadata file and never embeds CI-provider-specific behavior.
 
-GitHub Actions and Jenkins must invoke this same interface.
+Every Jenkins pipeline must invoke this same interface.

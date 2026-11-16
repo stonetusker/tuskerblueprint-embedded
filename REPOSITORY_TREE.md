@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - PRD-REQ-010
 verified_by:
@@ -23,12 +23,6 @@ Generated source-controlled file inventory. Build, cache, virtual-environment, a
 .editorconfig
 .github/ISSUE_TEMPLATE/implementation.yml
 .github/pull_request_template.md
-.github/workflows/build-image.yml
-.github/workflows/docs.yml
-.github/workflows/nightly.yml
-.github/workflows/promote-mender.yml
-.github/workflows/pull-request.yml
-.github/workflows/release-candidate.yml
 .gitignore
 .markdownlint.yml
 .yamllint.yml
@@ -36,7 +30,9 @@ CODEOWNERS
 CONTRIBUTING.md
 DOCUMENT_INDEX.md
 IMPLEMENTATION_MANIFEST.md
+LICENSE
 LICENSE.md
+MANIFEST.sha256
 Makefile
 README.md
 REPOSITORY_TREE.md
@@ -51,12 +47,19 @@ app/sensornode/cmd/sensornode/main_test.go
 app/sensornode/go.mod
 app/sensornode/image-version
 ci/README.md
-ci/github/README.md
 ci/jenkins/Jenkinsfile
 ci/jenkins/README.md
 ci/jenkins/create-diagnostic-bundle.sh
+ci/jenkins/job-config/sensornode-ci.xml.template
 ci/jenkins/job-config/sensornode-diagnostic-build.xml.template
+ci/jenkins/job-config/sensornode-nightly.xml.template
+ci/jenkins/job-config/sensornode-promote-mender.xml.template
+ci/jenkins/job-config/sensornode-release-candidate.xml.template
 ci/jenkins/mcp/README.md
+ci/jenkins/pipelines/ci.Jenkinsfile
+ci/jenkins/pipelines/nightly.Jenkinsfile
+ci/jenkins/pipelines/promote-mender.Jenkinsfile
+ci/jenkins/pipelines/release-candidate.Jenkinsfile
 config/auto.conf.sample
 config/bblayers.conf.sample
 config/local.conf.sample
@@ -114,7 +117,7 @@ docs/04-architecture/qemu-test-architecture.md
 docs/04-architecture/security-architecture.md
 docs/04-architecture/system-context.md
 docs/05-component-specifications/build-container.md
-docs/05-component-specifications/github-runner.md
+docs/05-component-specifications/jenkins-agents.md
 docs/05-component-specifications/jenkins-job.md
 docs/05-component-specifications/jenkins-mcp-integration.md
 docs/05-component-specifications/mender-client.md
@@ -177,7 +180,7 @@ docs/10-ai-governance/prompt-injection-controls.md
 docs/10-ai-governance/tuskersquad-alignment.md
 docs/11-content-series/claims-validation.md
 docs/11-content-series/episode-01-build-comparison.md
-docs/11-content-series/episode-02-github-actions.md
+docs/11-content-series/episode-02-jenkins-ci.md
 docs/11-content-series/episode-03-qemu-testing.md
 docs/11-content-series/episode-04-mender-ota.md
 docs/11-content-series/episode-05-rollback.md
@@ -194,6 +197,7 @@ docs/12-decisions/ADR-007-standalone-infrastructure.md
 docs/12-decisions/ADR-008-mender-deployment.md
 docs/12-decisions/ADR-009-jenkins-mcp-integration.md
 docs/12-decisions/ADR-010-human-approval-control.md
+docs/12-decisions/ADR-011-jenkins-single-orchestrator.md
 docs/12-decisions/README.md
 docs/13-traceability/episode-to-feature-matrix.md
 docs/13-traceability/release-traceability.md
@@ -220,8 +224,8 @@ docs/16-implementation/complete-project-implementation-plan.md
 docs/16-implementation/demo-guide.md
 docs/16-implementation/end-to-end-acceptance.md
 docs/16-implementation/external-version-pinning.md
-docs/16-implementation/github-actions-step-by-step.md
 docs/16-implementation/go-application-implementation.md
+docs/16-implementation/host-service-restart.md
 docs/16-implementation/implementation-checklist.md
 docs/16-implementation/implementation-overview.md
 docs/16-implementation/implementation-status.md
@@ -229,6 +233,7 @@ docs/16-implementation/infrastructure-implementation.md
 docs/16-implementation/infrastructure-ubuntu24-single-host.md
 docs/16-implementation/jenkins-ai-implementation.md
 docs/16-implementation/jenkins-mcp-claude-step-by-step.md
+docs/16-implementation/jenkins-pipelines-step-by-step.md
 docs/16-implementation/jenkins-step-by-step.md
 docs/16-implementation/local-development-guide.md
 docs/16-implementation/mac-m3-development-guide.md
@@ -252,6 +257,9 @@ docs/16-implementation/yocto-build-step-by-step.md
 docs/16-implementation/yocto-layer-implementation.md
 docs/16-implementation/yocto-layer-walkthrough.md
 docs/README.md
+docs/diagrams/commit-to-device-flow.drawio
+docs/diagrams/system-architecture.drawio
+docs/presentations/TuskerBlueprint-Embedded-Demo.pptx
 docs/templates/adr-template.md
 docs/templates/architecture-spec-template.md
 docs/templates/change-request-template.md
@@ -274,16 +282,16 @@ infra/ansible/playbooks/site.yml
 infra/ansible/requirements.yml
 infra/ansible/roles/common/tasks/main.yml
 infra/ansible/roles/docker/tasks/main.yml
-infra/ansible/roles/github_release_runner/tasks/main.yml
-infra/ansible/roles/github_runner/tasks/main.yml
 infra/ansible/roles/jenkins/tasks/main.yml
 infra/ansible/roles/jenkins_agent/tasks/main.yml
+infra/ansible/roles/jenkins_release_agent/tasks/main.yml
 infra/ansible/roles/mender/tasks/main.yml
 infra/ansible/roles/minio/tasks/main.yml
 infra/ansible/roles/qemu_fleet/handlers/main.yml
 infra/ansible/roles/qemu_fleet/tasks/main.yml
 infra/ansible/roles/reverse_proxy/tasks/main.yml
 infra/compose/jenkins/.env.example
+infra/compose/jenkins/agent/jenkins-agent.service
 infra/compose/jenkins/docker-compose.yml
 infra/compose/mender/README.md
 infra/compose/mender/install-bundle.sh
@@ -300,32 +308,40 @@ infra/compose/reverse-proxy/Caddyfile
 infra/compose/reverse-proxy/docker-compose.yml
 infra/k3s-future/README.md
 kas/base.yml
+kas/benchmark-clean.yml
 kas/broken-demo.yml
 kas/ci.yml
 kas/development.yml
 kas/mender.yml
 kas/release.yml
+kas/source-lock.yml
 mender/README.md
 mender/artifact/create-artifact.sh
 mender/demo-scenarios/device-rollback.md
 mender/demo-scenarios/pipeline-prevention.md
+mender/demo-scenarios/run-ota-e2e.sh
 mender/health-checks/sensornode-health.sh
 meta-sensornode/README.md
 meta-sensornode/conf/distro/sensornode.conf
 meta-sensornode/conf/layer.conf
 meta-sensornode/conf/mender-sensornode.inc
+meta-sensornode/dynamic-layers/mender/recipes-mender/mender/files/mender-device-identity
+meta-sensornode/dynamic-layers/mender/recipes-mender/mender/mender_%.bbappend
+meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/files/ArtifactCommit_Enter_50_sensornode-health
+meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/files/sensornode-require-data-mount.conf
+meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/files/sensornode-require-data-partition.conf
+meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/sensornode-mender-config.bb
 meta-sensornode/lib/oeqa/runtime/cases/sensornode.py
 meta-sensornode/recipes-core/images/sensornode-image-broken.bb
 meta-sensornode/recipes-core/images/sensornode-image-ci.bb
 meta-sensornode/recipes-core/images/sensornode-image-dev.bb
+meta-sensornode/recipes-core/images/sensornode-image-release-broken.bb
 meta-sensornode/recipes-core/images/sensornode-image-release.bb
 meta-sensornode/recipes-core/images/sensornode-image.inc
 meta-sensornode/recipes-core/packagegroups/packagegroup-sensornode.bb
+meta-sensornode/recipes-core/sensornode-network/files/80-sensornode-wired.network
+meta-sensornode/recipes-core/sensornode-network/sensornode-network.bb
 meta-sensornode/recipes-core/sensornode-release/sensornode-release.bb
-meta-sensornode/dynamic-layers/mender/recipes-mender/mender/files/mender-device-identity
-meta-sensornode/dynamic-layers/mender/recipes-mender/mender/mender_%.bbappend
-meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/files/ArtifactCommit_Enter_50_sensornode-health
-meta-sensornode/dynamic-layers/mender/recipes-mender/sensornode-mender-config/sensornode-mender-config.bb
 meta-sensornode/recipes-sensornode/sensornode-app/files/sensornode-healthcheck.sh
 meta-sensornode/recipes-sensornode/sensornode-app/files/sensornode.env
 meta-sensornode/recipes-sensornode/sensornode-app/files/sensornode.service
@@ -369,19 +385,20 @@ tests/qemu/test_version.py
 tools/fetch_candidate.py
 tools/generate_release_manifest.py
 tools/lock_sources.py
+tools/mender_artifact_name.py
 tools/oeqa_to_junit.py
 tools/publish_candidate.py
 tools/redact_build_logs.py
 tools/render_benchmark_summary.py
 tools/requirements.txt
 tools/review_repository.py
+tools/validate_jenkins_pipelines.py
 tools/validate_markdown_links.py
 tools/validate_repository_policy.py
 tools/validate_source_lock.py
 tools/validate_specs.py
 tools/validate_traceability.py
 tools/validate_ubuntu24_portability.py
-tools/validate_workflows.py
 tools/validate_yaml.py
 tools/validate_yocto_layer.py
 ```

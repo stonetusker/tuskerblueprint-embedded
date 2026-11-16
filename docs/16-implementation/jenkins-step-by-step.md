@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - PRD-REQ-008
   - PRD-REQ-009
@@ -18,7 +18,7 @@ verified_by:
 
 # Jenkins Step by Step
 
-Jenkins is a parallel diagnostic path. It is not the release authority.
+Jenkins is the only CI/CD orchestrator ([ADR-011](../12-decisions/ADR-011-jenkins-single-orchestrator.md)). This page sets up the controller, the build agent and the diagnostic job; the CI, nightly, release and promotion jobs are in [Jenkins Pipelines Step by Step](jenkins-pipelines-step-by-step.md).
 
 ## 1. Start controller
 
@@ -36,7 +36,7 @@ The custom controller image in `containers/jenkins/` installs Pipeline, Git, cre
 
 ### UI steps
 
-Open Jenkins → **Manage Jenkins** → **Security**. Disable anonymous read. Create named users/groups for administrators, build users, AI read-only access, and `embedded-release-approvers`.
+Open Jenkins → **Manage Jenkins** → **Security**. Disable anonymous read. Create named users/groups for administrators, build users, AI read-only access, `embedded-release-approvers`, `firmware-signing-approvers` and `firmware-production-approvers`.
 
 ### UI steps
 
@@ -46,9 +46,9 @@ Jenkins → **Manage Jenkins** → **Nodes** → **New Node**. Add the Ubuntu 24
 yocto-vps8
 ```
 
-The host agent needs Docker and the repository build dependencies but must not have Mender signing or production deployment credentials.
+The host agent needs Docker and the repository build dependencies but must not have Mender signing or production deployment credentials. Those live only on the separate `firmware-release` agent.
 
-## 3. Create pipeline job
+## 3. Create the jobs
 
 For a public repository, run:
 
@@ -60,7 +60,7 @@ export JENKINS_REPOSITORY_URL='<git-url>'
 scripts/configure-jenkins-job.sh
 ```
 
-The job uses `ci/jenkins/Jenkinsfile` and repository scripts.
+This creates every job defined in `ci/jenkins/job-config/` that does not exist yet; set `JENKINS_GIT_CREDENTIALS_ID` when the repository needs an SSH credential. The diagnostic job uses `ci/jenkins/Jenkinsfile` and repository scripts.
 
 ## 4. Validate human approval
 
@@ -68,4 +68,4 @@ Trigger a controlled broken build with `DIAGNOSTIC_REBUILD=true`. Jenkins must p
 
 ## 5. Verify separation
 
-The Jenkins job must not contain Mender upload tokens, release-signing keys, Git write credentials, or Jenkins administrator credentials.
+The diagnostic, CI and nightly jobs must not contain Mender upload tokens, release-signing keys, Git write credentials, or Jenkins administrator credentials. `make pipeline-check` fails if they reference the signing or deployment scripts.

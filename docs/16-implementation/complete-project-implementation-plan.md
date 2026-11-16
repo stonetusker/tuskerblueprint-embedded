@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - GOV-001
   - PRD-003
@@ -20,7 +20,7 @@ verified_by:
 
 ## Objective
 
-Build Project C as a reproducible embedded delivery platform on Ubuntu 24.x using Yocto, GitHub Actions, QEMU, MinIO, Mender, Jenkins, and constrained AI-assisted diagnostics.
+Build Project C as a reproducible embedded delivery platform on Ubuntu 24.x using Yocto, Jenkins, QEMU, MinIO, Mender, and constrained AI-assisted diagnostics.
 
 ## Delivery sequence
 
@@ -31,7 +31,7 @@ Build Project C as a reproducible embedded delivery platform on Ubuntu 24.x usin
 | 2 | SensorNode application | `app/sensornode/` | Go unit and endpoint tests pass |
 | 3 | Yocto layer | `meta-sensornode/`, `kas/` | CI image builds and boots |
 | 4 | Build acceleration | `cache/`, `infra/compose/minio/` | Clean/cached benchmark is recorded |
-| 5 | CI gate | `.github/workflows/` | Main build and QEMU test pass |
+| 5 | CI gate | `ci/jenkins/` | Main build and QEMU test pass |
 | 6 | Release controls | `scripts/generate-sbom.sh`, `tools/generate_release_manifest.py` | SBOM, checksums and exact artifact identity exist |
 | 7 | OTA | `kas/mender.yml`, `mender/` | Canary installs, reboots and commits |
 | 8 | Rollback | `mender/demo-scenarios/` | Unhealthy update returns to last known good |
@@ -48,7 +48,7 @@ Build Project C as a reproducible embedded delivery platform on Ubuntu 24.x usin
 2. Run `scripts/doctor-ubuntu24.sh`.
 3. Select exact external tool/container versions using `docs/16-implementation/external-version-pinning.md`.
 4. Generate `kas/source-lock.yml` with `make source-lock`.
-5. Commit the lock before enabling release workflows.
+5. Commit the lock before enabling the release jobs.
 
 ### Phase 1: specification gate
 
@@ -86,13 +86,13 @@ make qemu-test
 
 Deploy MinIO, create least-privilege identities, run one clean build and one cache-reuse build, then store the benchmark evidence.
 
-### Phase 5: GitHub Actions
+### Phase 5: Jenkins CI
 
-Provision the build runner with label `yocto`. Configure MinIO cache credentials. Merge only after the self-hosted build and QEMU gate are stable.
+Connect the build agent with label `yocto-vps8` and create the jobs with `scripts/configure-jenkins-job.sh`. Configure MinIO cache credentials. Merge only after the self-hosted build and QEMU gate are stable.
 
 ### Phase 6: release control
 
-Create an isolated release runner with label `release`. It owns only signing and publication tools. It must not perform the Yocto build. The release workflow downloads the already-tested candidate and signs the exact file.
+Create an isolated Jenkins agent with label `firmware-release`. It owns only signing and publication tools. It must not perform the Yocto build. After approval, the release job unstashes the already-tested candidate and signs the exact file.
 
 ### Phase 7 and 8: OTA and rollback
 

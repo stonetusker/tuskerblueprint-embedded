@@ -27,7 +27,7 @@ def main() -> int:
         command('YAML syntax', ['python3', 'tools/validate_yaml.py'], root),
         command('Yocto layer policy', ['python3', 'tools/validate_yocto_layer.py'], root),
         command('Ubuntu 24 portability policy', ['python3', 'tools/validate_ubuntu24_portability.py'], root),
-        command('GitHub workflow policy', ['python3', 'tools/validate_workflows.py'], root),
+        command('Jenkins pipeline policy', ['python3', 'tools/validate_jenkins_pipelines.py'], root),
         command('Repository security policy', ['python3', 'tools/validate_repository_policy.py'], root),
         command('Python syntax', ['python3', '-m', 'compileall', '-q', 'tools', 'tests'], root),
         command('Shell syntax', ['bash', 'scripts/check-shell-syntax.sh'], root),
@@ -38,16 +38,18 @@ def main() -> int:
     checks.append(('Shell executable permissions', not executable, '\n'.join(map(str, executable)) or 'all shell scripts executable'))
     native = [p for p in root.rglob('*') if p.is_file() and p.suffix in {'.bb', '.bbappend', '.conf', '.inc'}]
     checks.append(('Yocto layer assets', len(native) >= 10, f'{len(native)} native Yocto metadata files'))
-    release_workflow = (root / '.github/workflows/release-candidate.yml').read_text(encoding='utf-8')
-    source_lock_enforced = ('SOURCE_LOCK_CONFIG: kas/source-lock.yml' in release_workflow
-                            and 'validate_source_lock.py' in release_workflow)
+    release_pipeline = (root / 'ci/jenkins/pipelines/release-candidate.Jenkinsfile').read_text(encoding='utf-8')
+    source_lock_enforced = ("SOURCE_LOCK_CONFIG = 'kas/source-lock.yml'" in release_pipeline
+                            and 'validate_source_lock.py' in release_pipeline)
     checks.append(('Immutable source lock enforcement', source_lock_enforced,
-                   'release workflow requires kas/source-lock.yml and validates exact commits'))
-    jenkins_template = root / 'ci/jenkins/job-config/sensornode-diagnostic-build.xml.template'
+                   'release pipeline requires kas/source-lock.yml and validates exact commits'))
+    xml_ok, xml_detail = True, 'Jenkins job XML is well formed'
     try:
         import xml.etree.ElementTree as ET
-        ET.fromstring(jenkins_template.read_text(encoding='utf-8').replace('__REPOSITORY_URL__', 'https://example.invalid/repo.git'))
-        xml_ok, xml_detail = True, 'Jenkins Pipeline job XML is well formed'
+        for template in sorted((root / 'ci/jenkins/job-config').glob('*.xml.template')):
+            ET.fromstring(template.read_text(encoding='utf-8')
+                          .replace('__REPOSITORY_URL__', 'https://example.invalid/repo.git')
+                          .replace('__GIT_CREDENTIALS_ID__', 'example'))
     except Exception as exc:
         xml_ok, xml_detail = False, str(exc)
     checks.append(('Jenkins job XML', xml_ok, xml_detail))

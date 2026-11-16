@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - ARCH-001
 verified_by:
@@ -18,7 +18,7 @@ verified_by:
 
 # Infrastructure Implementation
 
-Ansible provisions the standalone VPS8 host, Docker, the self-hosted runner, MinIO, Jenkins, the QEMU fleet, reverse proxy, and the validated Mender bundle.
+Ansible provisions the standalone VPS8 host, Docker, the Jenkins build and release agents, MinIO, Jenkins, the QEMU fleet, reverse proxy, and the validated Mender bundle.
 
 All moving versions and download artifacts are deployment inputs with required checksums. Secrets belong in Ansible Vault or an approved secret manager.
 

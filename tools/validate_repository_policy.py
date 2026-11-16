@@ -21,19 +21,20 @@ def main() -> int:
         if expected not in jenkins:
             failures.append(f'Jenkinsfile missing governance control: {expected}')
 
-    promotion = (root / '.github/workflows/promote-mender.yml').read_text(encoding='utf-8')
-    if 'environment: firmware-production' not in promotion:
-        failures.append('Mender promotion lacks protected environment')
+    promotion = (root / 'ci/jenkins/pipelines/promote-mender.Jenkinsfile').read_text(encoding='utf-8')
+    if "submitter: 'firmware-production-approvers'" not in promotion:
+        failures.append('Mender promotion lacks a production approval gate')
 
-    release = (root / '.github/workflows/release-candidate.yml').read_text(encoding='utf-8')
-    if 'environment: firmware-signing' not in release or 'runs-on: [self-hosted, linux, release]' not in release:
-        failures.append('release signing is not isolated on the protected release runner')
+    release = (root / 'ci/jenkins/pipelines/release-candidate.Jenkinsfile').read_text(encoding='utf-8')
+    if "submitter: 'firmware-signing-approvers'" not in release or "agent { label 'firmware-release' }" not in release:
+        failures.append('release signing is not isolated on the approved firmware-release agent')
 
-    pr = (root / '.github/workflows/pull-request.yml').read_text(encoding='utf-8')
-    if 'pull_request_target' in pr:
-        failures.append('pull_request_target is prohibited')
-    if '/srv/yocto-pr-cache/' not in pr:
-        failures.append('pull-request Yocto job lacks isolated cache')
+    ci = (root / 'ci/jenkins/pipelines/ci.Jenkinsfile').read_text(encoding='utf-8')
+    if 'yocto-branch-cache' not in ci:
+        failures.append('branch Yocto builds lack an isolated cache')
+
+    if any(p.is_file() for p in (root / '.github/workflows').glob('*')):
+        failures.append('GitHub Actions workflows are not used; Jenkins is the only CI/CD orchestrator')
 
     required_yocto = [
         'meta-sensornode/conf/layer.conf',

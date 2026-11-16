@@ -13,7 +13,7 @@ python3 "$PROJECT_ROOT/tools/generate_release_manifest.py" \
   --product SensorNode \
   --version "${SENSORNODE_VERSION:-0.2.0}" \
   --git-commit "$commit" \
-  --build-number "${GITHUB_RUN_NUMBER:-${BUILD_NUMBER:-local}}" \
+  --build-number "${BUILD_NUMBER:-local}" \
   --machine qemuarm64 \
   --distro sensornode \
   --image "$image" \

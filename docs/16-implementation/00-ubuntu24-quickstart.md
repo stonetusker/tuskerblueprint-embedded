@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - PRD-REQ-001
   - PRD-REQ-010
@@ -89,7 +89,7 @@ Follow these documents in order:
 
 1. `docs/16-implementation/complete-project-implementation-plan.md`
 2. `docs/16-implementation/minio-cache-step-by-step.md`
-3. `docs/16-implementation/github-actions-step-by-step.md`
+3. `docs/16-implementation/jenkins-pipelines-step-by-step.md`
 4. `docs/16-implementation/jenkins-step-by-step.md`
 5. `docs/16-implementation/mender-server-step-by-step.md`
 6. `docs/16-implementation/mender-ota-step-by-step.md`

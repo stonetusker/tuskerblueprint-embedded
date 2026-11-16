@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - GOV-001
 verified_by:
@@ -21,7 +21,7 @@ verified_by:
 - Reducing build time with shared caching
 - Introducing virtual target validation
 - Designing OTA promotion and rollback controls
-- Hardening self-hosted Jenkins and GitHub runners
+- Hardening self-hosted Jenkins controllers and agents
 - Producing SBOM and signed firmware evidence
 - Introducing AI-assisted diagnostics with human approval
 - Migrating embedded delivery onto a shared platform-engineering foundation

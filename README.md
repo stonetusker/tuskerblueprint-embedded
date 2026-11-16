@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -17,7 +17,7 @@ verified_by:
 
 # TuskerBlueprint Embedded
 
-TuskerBlueprint Embedded is Stonetusker Systems' specification-driven reference architecture for embedded Linux delivery. It demonstrates a complete SensorNode lifecycle using Yocto/OpenEmbedded, shared build caching, GitHub Actions, QEMU validation, Mender OTA, Jenkins diagnostics, and governed AI assistance.
+TuskerBlueprint Embedded is Stonetusker Systems' specification-driven reference architecture for embedded Linux delivery. It demonstrates a complete SensorNode lifecycle using Yocto/OpenEmbedded, shared build caching, Jenkins CI/CD, QEMU validation, Mender OTA, Jenkins diagnostics, and governed AI assistance.
 
 ## Repository Purpose
 
@@ -55,7 +55,7 @@ This version includes an implementation-ready starter repository rather than spe
 - `kas` build manifests
 - Yocto builder container
 - Shared-cache synchronization scripts
-- GitHub Actions workflows
+- Jenkins pipelines for branch CI, nightly builds, release candidates and Mender promotion (GitHub hosts the repository only)
 - Direct QEMU fleet launcher and host tests
 - Mender artifact, signing, health, and canary wrappers
 - Jenkins diagnostic pipeline with enforced human approval
@@ -78,7 +78,7 @@ The repository is syntactically and structurally reviewed, and the Go applicatio
 
 For a clean Ubuntu 24.x machine, start with [`docs/16-implementation/00-ubuntu24-quickstart.md`](docs/16-implementation/00-ubuntu24-quickstart.md).
 
-The reviewed full implementation sequence is in [`docs/16-implementation/complete-project-implementation-plan.md`](docs/16-implementation/complete-project-implementation-plan.md). It covers host preparation, immutable source locking, SensorNode, Yocto, shared cache, QEMU, GitHub Actions, signing, Mender OTA, rollback, Jenkins, MCP/Claude governance, and end-to-end acceptance.
+The reviewed full implementation sequence is in [`docs/16-implementation/complete-project-implementation-plan.md`](docs/16-implementation/complete-project-implementation-plan.md). It covers host preparation, immutable source locking, SensorNode, Yocto, shared cache, QEMU, Jenkins CI/CD, signing, Mender OTA, rollback, Jenkins, MCP/Claude governance, and end-to-end acceptance.
 
 Quick host verification:
 
@@ -93,4 +93,4 @@ make yocto-build
 make qemu-test
 ```
 
-Release workflows intentionally require a committed `kas/source-lock.yml`; the first source lock must be generated online from the official upstream repositories rather than fabricated in this package.
+The Jenkins release job intentionally requires a committed `kas/source-lock.yml`; the first source lock must be generated online from the official upstream repositories rather than fabricated in this package.

@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -19,7 +19,7 @@ verified_by:
 
 ## Included
 
-The initial release includes SensorNode, `qemuarm64`, a Stonetusker Yocto layer, build benchmarking, MinIO-backed downloads and sstate reuse, GitHub Actions, QEMU smoke tests, Mender OTA, canary rollout, pipeline prevention, device rollback, Jenkins diagnostics, Claude analysis, approval controls, SBOMs, signing, and operational runbooks.
+The initial release includes SensorNode, `qemuarm64`, a Stonetusker Yocto layer, build benchmarking, MinIO-backed downloads and sstate reuse, Jenkins CI/CD, QEMU smoke tests, Mender OTA, canary rollout, pipeline prevention, device rollback, Jenkins diagnostics, Claude analysis, approval controls, SBOMs, signing, and operational runbooks.
 
 ## Excluded
 

@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - PRD-REQ-005
 verified_by:
@@ -46,7 +46,7 @@ scripts/build-image.sh
 | `MENDER_ARTIFACT_NAME` | `sensornode-${SENSORNODE_IMAGE_VERSION}` | Every build must have a unique artifact name or Mender reports "already installed". |
 | `MENDER_DEMO_HOST_IP_ADDRESS` | `10.0.2.2` | Adds `docker.mender.io` and `s3.docker.mender.io` to the device `/etc/hosts`, pointing at the host through QEMU user networking. |
 
-`SENSORNODE_IMAGE_VERSION` comes from `SENSORNODE_VERSION`, `BUILD_NUMBER`/`GITHUB_RUN_NUMBER` and `GIT_COMMIT`/`GITHUB_SHA`. These reach BitBake only because `kas/base.yml` declares them under `env:`; kas drops undeclared variables.
+`SENSORNODE_IMAGE_VERSION` comes from `SENSORNODE_VERSION`, `BUILD_NUMBER` and `GIT_COMMIT` (the Jenkins pipelines pass the 7-character commit). These reach BitBake only because `kas/base.yml` declares them under `env:`; kas drops undeclared variables.
 
 ## 3. Validate the exact release disk image
 
@@ -58,11 +58,11 @@ The test boots the complete `sensornode-image-release-qemuarm64.uefiimg` (GPT: E
 
 ## 4. Create/sign candidate
 
-The preferred path is `.github/workflows/release-candidate.yml`. It builds and tests on the Yocto runner, then signs on the isolated release runner.
+The preferred path is the Jenkins job `sensornode-release-candidate`. It builds and tests on the `yocto-vps8` agent, then, after approval, signs on the isolated `firmware-release` agent.
 
 ## 5. Upload and canary
 
-Use `.github/workflows/promote-mender.yml` with the immutable candidate URI, expected SHA-256, artifact name, and only the canary device ID.
+Use the Jenkins job `sensornode-promote-mender` with the immutable candidate URI, expected SHA-256, artifact name, and only the canary device ID.
 
 ## 6. Device health
 

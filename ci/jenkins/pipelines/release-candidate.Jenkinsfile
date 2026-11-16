@@ -1,0 +1,173 @@
+// SensorNode signed release candidate (Jenkins job: sensornode-release-candidate).
+//
+// Replaces the former GitHub Actions release-candidate workflow.
+//
+//  1. On the build agent (yocto-vps8): verify the commit is on main, validate the
+//     source lock, build the Mender release image, test the exact release disk in
+//     QEMU, collect the SBOM and keep the unsigned candidate.
+//  2. A member of firmware-signing-approvers approves signing (no executor held).
+//  3. On the isolated release agent (firmware-release): sign the exact candidate
+//     with the key that only that agent holds and publish it write-once to MinIO.
+//
+// The build agent never sees the signing key; the release agent never runs Docker
+// or touches the Yocto cache.
+
+pipeline {
+  agent none
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10'))
+    timeout(time: 12, unit: 'HOURS')
+  }
+
+  parameters {
+    string(name: 'VERSION', defaultValue: '', trim: true, description: 'Semantic version, for example 0.4.0')
+    string(name: 'SOURCE_COMMIT', defaultValue: '', trim: true, description: 'Full 40-character commit that is already on main')
+    booleanParam(name: 'SIGN_AND_PUBLISH', defaultValue: true,
+                 description: 'After approval, sign on the firmware-release agent and publish the immutable candidate')
+  }
+
+  stages {
+    stage('Build and test candidate') {
+      agent { label 'yocto-vps8' }
+      environment {
+        KAS_FILE = 'kas/release.yml'
+        IMAGE = 'sensornode-image-release'
+        SENSORNODE_VERSION = "${params.VERSION}"
+        CACHE_DIR = "${HOME}/yocto-cache"
+        ARTIFACT_DIR = "${WORKSPACE}/artifacts"
+        SOURCE_LOCK_CONFIG = 'kas/source-lock.yml'
+      }
+      stages {
+        stage('Validate inputs') {
+          steps {
+            sh '''#!/bin/bash
+              set -Eeuo pipefail
+              [[ "$VERSION" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || { echo "VERSION must be a semantic version" >&2; exit 1; }
+              [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo "SOURCE_COMMIT must be a full 40-character commit" >&2; exit 1; }
+            '''
+          }
+        }
+
+        stage('Check out exact commit on main') {
+          steps {
+            sh '''#!/bin/bash
+              set -Eeuo pipefail
+              git fetch --prune origin '+refs/heads/main:refs/remotes/origin/main'
+              git checkout --detach "$SOURCE_COMMIT"
+              git merge-base --is-ancestor "$SOURCE_COMMIT" origin/main
+              rm -rf artifacts
+            '''
+          }
+        }
+
+        stage('Prepare test environment') {
+          steps {
+            sh 'python3 -m venv .venv && .venv/bin/pip install -q -r tools/requirements.txt'
+          }
+        }
+
+        stage('Validate immutable source lock') {
+          steps { sh '.venv/bin/python tools/validate_source_lock.py "$SOURCE_LOCK_CONFIG" --require-mender' }
+        }
+
+        stage('Build Mender-capable image') {
+          steps {
+            sh '''
+              export GIT_COMMIT="$(git rev-parse --short=7 HEAD)"
+              scripts/build-image.sh
+            '''
+          }
+        }
+
+        stage('Test exact release disk in QEMU') {
+          steps { sh 'scripts/run-release-qemu-tests.sh' }
+        }
+
+        stage('Collect SBOM') {
+          steps { sh 'scripts/generate-sbom.sh' }
+        }
+
+        stage('Keep unsigned candidate') {
+          steps {
+            sh '''#!/bin/bash
+              set -Eeuo pipefail
+              artifact="$(find artifacts/deploy/qemuarm64 -maxdepth 1 -type f -name '*.mender' -print -quit)"
+              test -n "$artifact"
+              cp "$artifact" artifacts/unsigned-candidate.mender
+              sha256sum artifacts/unsigned-candidate.mender > artifacts/unsigned-candidate.mender.sha256
+            '''
+            stash name: 'candidate', includes: 'artifacts/unsigned-candidate.mender*, artifacts/release-manifest.json, artifacts/sbom/**, artifacts/release-qemu/**'
+          }
+        }
+
+        stage('Refresh cache') {
+          steps {
+            script {
+              withEnv(['CACHE_WRITE_ALLOWED=1']) {
+                if (env.MINIO_CACHE_CREDENTIALS_ID?.trim()) {
+                  withCredentials([usernamePassword(credentialsId: env.MINIO_CACHE_CREDENTIALS_ID,
+                                                    usernameVariable: 'MINIO_ACCESS_KEY',
+                                                    passwordVariable: 'MINIO_SECRET_KEY')]) {
+                    sh 'mc --no-color alias set "${MINIO_ALIAS:-tusker}" "${MINIO_ENDPOINT:-http://127.0.0.1:9000}" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null'
+                    sh 'scripts/cache-sync.sh push'
+                  }
+                } else {
+                  sh 'scripts/cache-sync.sh push'
+                }
+              }
+            }
+          }
+        }
+      }
+      post {
+        always {
+          junit testResults: 'artifacts/release-qemu/junit.xml', allowEmptyResults: true
+          archiveArtifacts artifacts: 'artifacts/unsigned-candidate.mender*, artifacts/release-manifest.json, artifacts/sbom/**, artifacts/release-qemu/**',
+                           allowEmptyArchive: true, fingerprint: true
+        }
+      }
+    }
+
+    stage('Approve signing') {
+      when { expression { params.SIGN_AND_PUBLISH } }
+      steps {
+        input message: "Sign and publish SensorNode ${params.VERSION} built from ${params.SOURCE_COMMIT}?",
+              ok: 'Sign candidate',
+              submitter: 'firmware-signing-approvers'
+      }
+    }
+
+    stage('Sign and publish') {
+      when { expression { params.SIGN_AND_PUBLISH } }
+      agent { label 'firmware-release' }
+      environment {
+        SIGNING_KEY = '/var/lib/tusker-release/mender-signing.pem'
+        MINIO_ALIAS = "${env.RELEASE_MINIO_ALIAS ?: 'tusker-release'}"
+      }
+      steps {
+        sh 'rm -rf artifacts'
+        unstash 'candidate'
+        withEnv(['PATH+RELEASE=/var/lib/tusker-release/bin']) {
+          sh '''#!/bin/bash
+            set -Eeuo pipefail
+            publish="artifacts/publish"
+            name="sensornode-${VERSION}-${SOURCE_COMMIT}.mender"
+            mkdir -p "$publish"
+            cp artifacts/unsigned-candidate.mender "$publish/$name"
+            [[ -f artifacts/release-manifest.json ]] && cp artifacts/release-manifest.json "$publish/"
+            [[ -d artifacts/sbom ]] && cp -a artifacts/sbom "$publish/"
+            [[ -d artifacts/release-qemu ]] && cp -a artifacts/release-qemu "$publish/"
+            ARTIFACT="$publish/$name" scripts/sign-artifact.sh
+            python3 tools/publish_candidate.py \
+              --artifact-root "$publish" \
+              --destination "minio://release-evidence/${VERSION}/${SOURCE_COMMIT}"
+          '''
+        }
+        archiveArtifacts artifacts: 'artifacts/publish/*.mender.sha256', fingerprint: true
+      }
+    }
+  }
+}

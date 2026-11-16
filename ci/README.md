@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -17,4 +17,4 @@ verified_by:
 
 # Ci
 
-CI implementation must remain thin and invoke common repository scripts.
+CI implementation runs in Jenkins only (`ci/jenkins/`), must remain thin, and invokes common repository scripts. GitHub hosts the Git repository and runs no workflows.

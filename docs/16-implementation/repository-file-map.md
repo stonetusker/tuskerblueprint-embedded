@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - ARCH-001
 verified_by:
@@ -51,8 +51,8 @@ verified_by:
 | `scripts/collect-build-outputs.sh` | Immutable deploy-output collection and hashes |
 | `scripts/generate-sbom.sh` | SPDX evidence collection |
 | `scripts/create-mender-artifact.sh` | Root filesystem to Mender artifact conversion |
-| `.github/workflows/` | Pull request, main, nightly, signing, and promotion orchestration |
-| `ci/jenkins/Jenkinsfile` | Parallel diagnostic build and human approval |
+| `ci/jenkins/` | Jenkins pipelines and job definitions: branch CI, nightly, release candidate, promotion, diagnostics |
+| `ci/jenkins/Jenkinsfile` | Diagnostic build, failure drill and human-approved rebuild |
 
 ## Platform
 
@@ -70,6 +70,6 @@ verified_by:
 | Path | Responsibility |
 |---|---|
 | `docs/` | Controlled specification set |
-| `tools/validate_*.py` | Specification, traceability, YAML, workflow, link, and policy validation |
+| `tools/validate_*.py` | Specification, traceability, YAML, Jenkins pipeline, link, and policy validation |
 | `tools/review_repository.py` | Reproducible principal-engineer review report |
 | `MANIFEST.sha256` | Package-integrity manifest generated before distribution |

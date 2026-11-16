@@ -1,0 +1,71 @@
+# Isolated Jenkins agent for signing and Mender promotion (label: firmware-release).
+# It holds the Mender signing key and release tools, is launched by the Jenkins
+# controller over SSH, and has no Docker group membership or Yocto cache access.
+- name: Validate release agent inputs
+  ansible.builtin.assert:
+    that:
+      - mender_artifact_url != 'required'
+      - mender_artifact_sha256 != 'required'
+      - minio_client_url != 'required'
+      - minio_client_sha256 != 'required'
+      - mender_cli_url != 'required'
+      - mender_cli_sha256 != 'required'
+      - vault_mender_signing_key is defined
+      - vault_jenkins_release_agent_public_key is defined
+    fail_msg: Release tool versions, checksums, the signing key, and the controller key for the release agent are required.
+
+- name: Install release agent runtime
+  ansible.builtin.apt:
+    name:
+      - openjdk-17-jre-headless
+      - git
+      - python3
+    state: present
+
+- name: Create isolated release agent user
+  ansible.builtin.user:
+    name: release-agent
+    create_home: true
+    shell: /bin/bash
+
+- name: Authorize Jenkins controller SSH key for the release agent
+  ansible.posix.authorized_key:
+    user: release-agent
+    key: "{{ vault_jenkins_release_agent_public_key }}"
+    state: present
+
+- name: Create release agent directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: release-agent
+    group: release-agent
+    mode: '0700'
+  loop:
+    - /var/lib/tusker-release
+    - /var/lib/tusker-release/bin
+    - /home/release-agent/workspace
+
+- name: Install Mender signing key
+  ansible.builtin.copy:
+    content: "{{ vault_mender_signing_key }}"
+    dest: /var/lib/tusker-release/mender-signing.pem
+    owner: release-agent
+    group: release-agent
+    mode: '0600'
+  no_log: true
+
+- name: Download verified release tools
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "/var/lib/tusker-release/bin/{{ item.name }}"
+    checksum: "sha256:{{ item.sha256 }}"
+    owner: release-agent
+    group: release-agent
+    mode: '0750'
+  loop:
+    - { name: mender-artifact, url: "{{ mender_artifact_url }}", sha256: "{{ mender_artifact_sha256 }}" }
+    - { name: mc, url: "{{ minio_client_url }}", sha256: "{{ minio_client_sha256 }}" }
+    - { name: mender-cli, url: "{{ mender_cli_url }}", sha256: "{{ mender_cli_sha256 }}" }
+  loop_control:
+    label: "{{ item.name }}"

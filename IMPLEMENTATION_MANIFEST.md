@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - GOV-007
 verified_by:
@@ -24,7 +24,7 @@ verified_by:
 | Markdown documents | 217 |
 | Yocto metadata | 12 |
 | Shell scripts | 32 |
-| GitHub workflows | 6 |
+| Jenkins pipelines | 5 |
 | Python source files | 21 |
 | Go source files | 2 |
 | Ansible/YAML files | 36 |
@@ -48,7 +48,7 @@ verified_by:
 
 ## Delivery Platform
 
-- GitHub Actions workflows under `.github/workflows/`
+- Jenkins pipelines and job definitions under `ci/jenkins/`
 - Jenkins pipeline and job template under `ci/jenkins/`
 - MinIO least-privilege cache/release configuration
 - Mender server bundle adapter and client/OTA configuration

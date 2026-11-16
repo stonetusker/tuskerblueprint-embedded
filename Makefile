@@ -6,7 +6,7 @@ BUILD_DIR ?= $(PROJECT_ROOT)/build
 KAS_FILE ?= kas/ci.yml
 IMAGE ?= sensornode-image-ci
 
-.PHONY: help bootstrap doctor setup source-lock source-lock-check builder-image validate docs-check app-fmt app-test app-build shell-check python-check yaml-check \
+.PHONY: help bootstrap doctor setup source-lock source-lock-check builder-image validate docs-check app-fmt app-test app-build shell-check python-check yaml-check pipeline-check policy-check \
         yocto-build qemu-test benchmark release-manifest review clean
 
 help:
@@ -19,6 +19,7 @@ help:
 	  'builder-image     Build the Yocto builder container' \
 	  'validate          Run repository validation suite' \
 	  'docs-check        Validate controlled Markdown and traceability' \
+	  'pipeline-check    Validate Jenkins pipelines and job definitions against CI/CD policy' \
 	  'app-test          Run SensorNode Go tests' \
 	  'app-build         Build the SensorNode application' \
 	  'yocto-build       Build the configured Yocto image with kas' \
@@ -47,7 +48,7 @@ setup:
 	python3 -m venv .venv
 	.venv/bin/pip install -r tools/requirements.txt
 
-validate: docs-check app-test app-integration python-check yaml-check workflow-check policy-check shell-check review
+validate: docs-check app-test app-integration python-check yaml-check pipeline-check policy-check shell-check review
 
 docs-check:
 	python3 tools/validate_specs.py
@@ -74,8 +75,8 @@ yaml-check:
 	python3 tools/validate_yocto_layer.py
 	python3 tools/validate_ubuntu24_portability.py
 
-workflow-check:
-	python3 tools/validate_workflows.py
+pipeline-check:
+	python3 tools/validate_jenkins_pipelines.py
 
 policy-check:
 	python3 tools/validate_repository_policy.py

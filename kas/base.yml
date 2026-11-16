@@ -9,8 +9,6 @@ target:
 # kas only forwards declared variables to BitBake; these feed the image and
 # Mender artifact identity (SENSORNODE_IMAGE_VERSION). Empty means "not set".
 env:
-  GITHUB_SHA: ""
-  GITHUB_RUN_NUMBER: ""
   GIT_COMMIT: ""
   BUILD_NUMBER: ""
   SENSORNODE_VERSION: ""

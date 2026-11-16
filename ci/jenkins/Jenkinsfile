@@ -1,3 +1,6 @@
+// SensorNode diagnostic pipeline (Jenkins job: sensornode-diagnostic-build).
+// Builds and QEMU-tests a commit, keeps a redacted evidence bundle and, after a
+// failure, offers one human-approved rebuild. It cannot sign or deploy.
 pipeline {
   agent { label 'yocto-vps8' }
 
@@ -39,7 +42,7 @@ pipeline {
     }
 
     stage('Validate') {
-      steps { sh 'make docs-check app-test python-check shell-check' }
+      steps { sh 'make docs-check app-test python-check shell-check pipeline-check' }
     }
 
     stage('Build and QEMU Test') {
@@ -47,7 +50,7 @@ pipeline {
         script {
           env.INITIAL_RESULT = 'SUCCESS'
           try {
-            sh 'scripts/build-image.sh'
+            sh 'GIT_COMMIT="$(git rev-parse --short=7 HEAD)" scripts/build-image.sh'
             sh 'scripts/run-qemu-tests.sh'
           } catch (err) {
             env.INITIAL_RESULT = 'FAILURE'
@@ -92,7 +95,7 @@ pipeline {
           }
           // The approved rebuild always targets the healthy CI image.
           withEnv(['IMAGE=sensornode-image-ci']) {
-            sh 'scripts/build-image.sh'
+            sh 'GIT_COMMIT="$(git rev-parse --short=7 HEAD)" scripts/build-image.sh'
             sh 'scripts/run-qemu-tests.sh'
           }
           currentBuild.result = 'SUCCESS'

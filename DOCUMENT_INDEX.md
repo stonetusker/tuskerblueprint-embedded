@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -21,15 +21,15 @@ verified_by:
 |---|---|---|---|
 | `.github/pull_request_template.md` | - | pull_request_template | Uncontrolled |
 | `CONTRIBUTING.md` | GOV-CONTRIB-001 | Contributing Guide | Approved |
-| `IMPLEMENTATION_MANIFEST.md` | IMPL-MANIFEST-001 | Implementation Asset Manifest | Approved |
+| `DOCUMENT_INDEX.md` | DOC-INDEX-ALL | Complete Document Index | Approved |
+| `IMPLEMENTATION_MANIFEST.md` | IMPL-MANIFEST-002 | Implementation Asset Manifest | Approved |
 | `LICENSE.md` | LEGAL-001 | Repository License Notice | Draft |
 | `README.md` | DOC-ROOT-001 | TuskerBlueprint Embedded Specification Repository | Approved |
-| `REPOSITORY_TREE.md` | IMPL-TREE-001 | Implementation Repository Tree | Approved |
+| `REPOSITORY_TREE.md` | IMPL-TREE-001 | Repository Tree | Approved |
 | `REVIEW_REPORT.md` | REVIEW-002 | Implementation Repository Review | Approved |
 | `SECURITY.md` | SEC-POL-001 | Security Policy | Approved |
 | `app/sensornode/README.md` | DIR-APP-SENSORNODE-README-MD | App Sensornode Documentation | Approved |
 | `ci/README.md` | DIR-CI-README-MD | Ci Documentation | Approved |
-| `ci/github/README.md` | DIR-CI-GITHUB-README-MD | Ci Github Documentation | Approved |
 | `ci/jenkins/README.md` | DIR-CI-JENKINS-README-MD | Ci Jenkins Documentation | Approved |
 | `ci/jenkins/mcp/README.md` | IMPL-MCP-001 | Jenkins MCP Implementation Guide | Approved |
 | `containers/jenkins/README.md` | DIR-CONTAINERS-JENKINS-README-MD | Containers Jenkins Documentation | Approved |
@@ -79,7 +79,7 @@ verified_by:
 | `docs/04-architecture/security-architecture.md` | ARCH-010 | Security Architecture | Approved |
 | `docs/04-architecture/system-context.md` | ARCH-002 | System Context | Approved |
 | `docs/05-component-specifications/build-container.md` | COMP-005 | Yocto Build Container | Approved |
-| `docs/05-component-specifications/github-runner.md` | COMP-006 | GitHub Actions Runner | Approved |
+| `docs/05-component-specifications/jenkins-agents.md` | COMP-006 | Jenkins Agents | Approved |
 | `docs/05-component-specifications/jenkins-job.md` | COMP-012 | Jenkins Diagnostic Job | Approved |
 | `docs/05-component-specifications/jenkins-mcp-integration.md` | COMP-013 | Jenkins MCP Integration | Approved |
 | `docs/05-component-specifications/mender-client.md` | COMP-010 | Mender Client | Approved |
@@ -142,7 +142,7 @@ verified_by:
 | `docs/10-ai-governance/tuskersquad-alignment.md` | AI-GOV-007 | TuskerSquad Alignment | Approved |
 | `docs/11-content-series/claims-validation.md` | CONTENT-009 | Claims Validation | Approved |
 | `docs/11-content-series/episode-01-build-comparison.md` | CONTENT-002 | Episode 01 — Build Time Comparison | Approved |
-| `docs/11-content-series/episode-02-github-actions.md` | CONTENT-003 | Episode 02 — GitHub Actions CI | Approved |
+| `docs/11-content-series/episode-02-jenkins-ci.md` | CONTENT-003 | Episode 02 — Jenkins CI | Approved |
 | `docs/11-content-series/episode-03-qemu-testing.md` | CONTENT-004 | Episode 03 — QEMU Validation | Approved |
 | `docs/11-content-series/episode-04-mender-ota.md` | CONTENT-005 | Episode 04 — Mender OTA | Approved |
 | `docs/11-content-series/episode-05-rollback.md` | CONTENT-006 | Episode 05 — Rollback | Approved |
@@ -159,6 +159,7 @@ verified_by:
 | `docs/12-decisions/ADR-008-mender-deployment.md` | ADR-008 | Validate Mender Topology in a Compatibility Spike | Proposed |
 | `docs/12-decisions/ADR-009-jenkins-mcp-integration.md` | ADR-009 | Use a Constrained Jenkins MCP Integration | Proposed |
 | `docs/12-decisions/ADR-010-human-approval-control.md` | ADR-010 | Enforce Rebuild Approval in Jenkins | Approved |
+| `docs/12-decisions/ADR-011-jenkins-single-orchestrator.md` | ADR-011 | Use Jenkins as the Only CI/CD Orchestrator | Approved |
 | `docs/12-decisions/README.md` | ADR-INDEX | Architecture Decision Records | Approved |
 | `docs/13-traceability/episode-to-feature-matrix.md` | TRACE-004 | Episode-to-Feature Matrix | Approved |
 | `docs/13-traceability/release-traceability.md` | TRACE-002 | Release Traceability | Approved |
@@ -171,13 +172,13 @@ verified_by:
 | `docs/15-evidence/README.md` | EVID-INDEX | Evidence Index | Approved |
 | `docs/15-evidence/ai-diagnostics-summary.md` | EVID-006 | AI Diagnostics Summary | Draft |
 | `docs/15-evidence/build-benchmark-summary.md` | EVID-001 | Build Benchmark Summary | Draft |
-| `docs/15-evidence/ota-deployment-summary.md` | EVID-003 | OTA Deployment Summary | Draft |
-| `docs/15-evidence/qemu-test-summary.md` | EVID-002 | QEMU Test Summary | Draft |
-| `docs/15-evidence/rollback-summary.md` | EVID-004 | Rollback Summary | Draft |
+| `docs/15-evidence/ota-deployment-summary.md` | EVID-003 | OTA Deployment Summary | In Review |
+| `docs/15-evidence/qemu-test-summary.md` | EVID-002 | QEMU Test Summary | In Review |
+| `docs/15-evidence/rollback-summary.md` | EVID-004 | Rollback Summary | In Review |
 | `docs/15-evidence/security-verification-summary.md` | EVID-005 | Security Verification Summary | Draft |
 | `docs/16-implementation/00-ubuntu24-quickstart.md` | IMPL-U24-000 | Ubuntu 24.04 Quick Start | Approved |
 | `docs/16-implementation/build-and-cache-execution.md` | IMPL-018 | Build and Cache Execution | Approved |
-| `docs/16-implementation/ci-workflow-implementation.md` | IMPL-004 | CI Workflow Implementation | Approved |
+| `docs/16-implementation/ci-workflow-implementation.md` | IMPL-004 | CI Pipeline Implementation | Approved |
 | `docs/16-implementation/command-reference.md` | IMPL-014 | Command Reference | Approved |
 | `docs/16-implementation/compatibility-matrix.md` | IMPL-013 | Compatibility Matrix | Draft |
 | `docs/16-implementation/compatibility-spike-plan.md` | IMPL-012 | Phase 0 Compatibility Spike Plan | Approved |
@@ -185,7 +186,6 @@ verified_by:
 | `docs/16-implementation/demo-guide.md` | IMPL-DEMO-001 | Demo Guide | Approved |
 | `docs/16-implementation/end-to-end-acceptance.md` | IMPL-ACCEPT-001 | End-to-End Acceptance Procedure | Approved |
 | `docs/16-implementation/external-version-pinning.md` | IMPL-PIN-001 | External Version and Checksum Pinning | Approved |
-| `docs/16-implementation/github-actions-step-by-step.md` | IMPL-GHA-001 | GitHub Actions Step by Step | Approved |
 | `docs/16-implementation/go-application-implementation.md` | IMPL-003 | SensorNode Go Application Implementation | Approved |
 | `docs/16-implementation/host-service-restart.md` | IMPL-SVC-001 | Host Service Restart After Reboot | Approved |
 | `docs/16-implementation/implementation-checklist.md` | IMPL-CHECK-001 | Project C Implementation Checklist | Approved |
@@ -195,6 +195,7 @@ verified_by:
 | `docs/16-implementation/infrastructure-ubuntu24-single-host.md` | IMPL-INFRA-U24-001 | Single Ubuntu 24 Host Infrastructure | Approved |
 | `docs/16-implementation/jenkins-ai-implementation.md` | IMPL-007 | Jenkins and AI Diagnostics Implementation | Approved |
 | `docs/16-implementation/jenkins-mcp-claude-step-by-step.md` | IMPL-MCP-002 | Jenkins MCP and Claude Step by Step | Approved |
+| `docs/16-implementation/jenkins-pipelines-step-by-step.md` | IMPL-JENKINS-002 | Jenkins Pipelines Step by Step | Approved |
 | `docs/16-implementation/jenkins-step-by-step.md` | IMPL-JENKINS-001 | Jenkins Step by Step | Approved |
 | `docs/16-implementation/local-development-guide.md` | IMPL-009 | Local Development Guide | Approved |
 | `docs/16-implementation/mac-m3-development-guide.md` | IMPL-010 | Apple Silicon Development Guide | Approved |

@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -37,7 +37,7 @@ make source-lock-check
 SOURCE_LOCK_CONFIG=kas/source-lock.yml scripts/build-image.sh
 ```
 
-`.github/workflows/release-candidate.yml` requires the lock and validates `meta-mender` is included.
+`ci/jenkins/pipelines/release-candidate.Jenkinsfile` requires the lock and validates `meta-mender` is included.
 
 ## Update process
 

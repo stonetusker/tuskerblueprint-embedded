@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - SEC-REQ-003
   - SEC-REQ-004
@@ -24,11 +24,11 @@ verified_by:
 
 GitHub repository → **Settings** → **Branches** or **Rulesets** → protect `main`.
 
-Require pull requests, successful repository validation, and review for changes to `meta-sensornode/`, `.github/workflows/`, `infra/`, `ci/jenkins/`, and security policy files.
+Require pull requests and review for changes to `meta-sensornode/`, `infra/`, `ci/jenkins/`, and security policy files. GitHub runs no checks; before merging, confirm the branch is green in the Jenkins `sensornode-ci` job.
 
 ## Source integrity
 
-Generate and commit `kas/source-lock.yml`. Release workflow validates exact 40-hex commits.
+Generate and commit `kas/source-lock.yml`. The Jenkins release-candidate job validates exact 40-hex commits.
 
 ## Artifact identity
 

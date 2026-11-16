@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -23,7 +23,7 @@ Specification framework, compatibility spike, SensorNode application, minimal Yo
 
 ## Release 0.2 — Continuous Build
 
-Pinned builder, shared cache, GitHub Actions runner, build metadata, QEMU gate.
+Pinned builder, shared cache, Jenkins build agent, build metadata, QEMU gate.
 
 ## Release 0.3 — Secure OTA
 

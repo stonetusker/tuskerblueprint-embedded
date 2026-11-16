@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -24,8 +24,8 @@ Project C can be demonstrated on one Ubuntu 24 host. For client production envir
 ```text
 Ubuntu 24 host
 ├── Docker Engine
-├── GitHub Actions build runner (tusker user)
-├── GitHub Actions release runner (release-runner user)
+├── Jenkins build agent, label yocto-vps8 (tusker user)
+├── Jenkins release agent, label firmware-release (release-agent user)
 ├── Jenkins controller container
 ├── Jenkins host agent
 ├── MinIO container
@@ -42,7 +42,7 @@ For repeatable infrastructure use `infra/ansible/playbooks/site.yml`. The roles 
 ## Isolation rules
 
 - Build runner: Docker and cache access, no signing key.
-- Release runner: signing and release-evidence access, no Docker build authority.
+- Release agent: signing and release-evidence access, no Docker build authority.
 - Jenkins controller: no Docker socket and no production credentials.
 - Jenkins agent: build/cache only.
 - Mender service: only required network/database/object-store credentials.

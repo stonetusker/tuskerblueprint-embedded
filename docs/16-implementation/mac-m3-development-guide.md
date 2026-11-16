@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - ARCH-001
 verified_by:
@@ -24,6 +24,6 @@ Recommended split:
 
 - Mac: Go development, Markdown, diagrams, Git, local ARM64 QEMU experiments
 - Linux ARM64 VM or VPS8: authoritative Yocto build, testimage, artifacts, CI
-- VPS8: shared cache, GitHub runner, Jenkins, Mender, persistent QEMU fleet
+- VPS8: shared cache, Jenkins and its agents, Mender, persistent QEMU fleet
 
 Do not compare build times between macOS and Linux hosts as though the environment were equivalent.

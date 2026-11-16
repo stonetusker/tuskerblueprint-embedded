@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -21,7 +21,7 @@ This repository intentionally does not invent current third-party release URLs o
 
 ## Items that must be pinned
 
-- GitHub Actions runner version and archive SHA-256
+- Jenkins controller image tag and agent Java runtime version
 - MinIO server image digest or immutable tag
 - MinIO client binary URL and SHA-256
 - Jenkins LTS image digest or immutable tag

@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -20,7 +20,7 @@ verified_by:
 | Episode | Feature | Primary Evidence |
 |---|---|---|
 | 1 | Clean and cached build | Benchmark summary and raw CI evidence |
-| 2 | GitHub Actions build | Workflow run, build metadata, runner status |
+| 2 | Jenkins CI build | Pipeline run, build metadata, agent status |
 | 3 | QEMU gate | Serial log, JUnit, failed-unit evidence |
 | 4 | Mender OTA | Artifact checksum, deployment, device version |
 | 5 | Prevention and rollback | Failed CI, paused rollout, recovered device |

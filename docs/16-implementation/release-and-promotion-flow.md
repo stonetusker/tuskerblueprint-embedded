@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Security Reviewer
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - ARCH-008
   - SEC-REQ-003
@@ -21,17 +21,17 @@ verified_by:
 
 ## Build and Test
 
-The release-candidate workflow accepts a semantic version and full commit. It verifies that the commit is an ancestor of `origin/main`, builds with `kas/release.yml` (which composes `base.yml` and `mender.yml`), and runs the exact release root filesystem in direct QEMU.
+The Jenkins job `sensornode-release-candidate` accepts a semantic version and full commit. It verifies that the commit is an ancestor of `origin/main`, builds with `kas/release.yml` (which composes `base.yml` and `mender.yml`), and runs the exact release root filesystem in direct QEMU.
 
 The release test does not substitute the debug-enabled CI image. It uses the release ext4 output and validates health, version, and sensor behavior over the forwarded application port.
 
 ## SBOM and Unsigned Candidate
 
-Yocto `create-spdx` executes during the original release build. The collection step copies existing SPDX output; it does not rebuild. The unsigned Mender artifact and all evidence are uploaded as a short-retention workflow artifact.
+Yocto `create-spdx` executes during the original release build. The collection step copies existing SPDX output; it does not rebuild. The unsigned Mender artifact and all evidence are archived with the Jenkins build and stashed for the signing stage.
 
 ## Isolated Signing
 
-A second job runs on the `release` runner under the protected `firmware-signing` environment. The runner:
+After a member of `firmware-signing-approvers` approves, the signing stage runs on the Jenkins agent labelled `firmware-release`. That agent:
 
 - has no Docker group membership
 - does not share the Yocto cache
@@ -43,7 +43,7 @@ A second job runs on the `release` runner under the protected `firmware-signing`
 
 ## Promotion
 
-The Mender promotion workflow runs under the separate `firmware-production` environment. It downloads a candidate by immutable URI, verifies the caller-supplied SHA-256, uploads the signed artifact, and creates only the canary deployment.
+The Jenkins job `sensornode-promote-mender` waits for approval by `firmware-production-approvers` and runs on the `firmware-release` agent. It downloads a candidate by immutable URI, verifies the caller-supplied SHA-256, uploads the signed artifact, and creates only the canary deployment.
 
 Fleet expansion is deliberately separate from candidate creation and signing.
 

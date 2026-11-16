@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -49,11 +49,11 @@ verified_by:
 
 ## CI and release
 
-- [ ] GitHub `yocto` runner registered
+- [ ] Jenkins `yocto-vps8` agent online and jobs created
 - [ ] Separate `release` runner registered
-- [ ] `firmware-signing` has required reviewer
-- [ ] `firmware-production` has required reviewer
-- [ ] Main workflow passes
+- [ ] `firmware-signing-approvers` group has members
+- [ ] `firmware-production-approvers` group has members
+- [ ] `sensornode-ci` passes on `main`
 - [ ] Release candidate is immutable and signed
 
 ## OTA

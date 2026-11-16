@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-08-14
-updated: 2026-08-14
+updated: 2026-11-16
 traces_to:
   - GOV-007
 verified_by:
@@ -58,7 +58,7 @@ Run controlled clean and cached builds. Record environment and elapsed time. Do 
 
 ## Release
 
-Run the release-candidate workflow from a commit already on `main`. Confirm the signing job signs the exact tested candidate and publishes to a previously unused MinIO path.
+Run the Jenkins `sensornode-release-candidate` job for a commit already on `main`. Confirm the signing job signs the exact tested candidate and publishes to a previously unused MinIO path.
 
 ## OTA
 

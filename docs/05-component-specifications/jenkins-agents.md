@@ -1,6 +1,6 @@
 ---
 id: COMP-006
-title: GitHub Actions Runner
+title: Jenkins Agents
 status: Approved
 version: 0.2.0
 owner: Subeesh / Stonetusker Systems
@@ -8,18 +8,25 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - ARCH-001
 verified_by:
   []
 ---
 
-# GitHub Actions Runner
+# Jenkins Agents
 
 ## Responsibility
 
-Execute trusted workflows, limit concurrency, isolate workspaces, protect credentials, and report health.
+Execute Jenkins pipeline stages, limit concurrency, isolate workspaces, protect credentials, and report health.
+
+| Agent label | Host account | Runs | Holds | Never has |
+|---|---|---|---|---|
+| `yocto-vps8` | build user (Docker group) | CI, nightly, diagnostic and release-candidate build/test stages | Yocto cache, Docker | signing key, Mender token, release-evidence write access |
+| `firmware-release` | `release-agent` (no Docker) | signing, release-evidence publication, Mender promotion | signing key (0600), `mender-artifact`, `mender-cli`, `mc` | Docker, Yocto cache, build workspaces |
+
+The build agent runs one executor so full Yocto builds never run concurrently on the host.
 
 ## Inputs
 

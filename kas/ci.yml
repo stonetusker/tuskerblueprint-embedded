@@ -11,8 +11,8 @@ local_conf_header:
   ci: |
     BB_NUMBER_THREADS ?= "6"
     PARALLEL_MAKE ?= "-j 6"
-    SENSORNODE_GIT_COMMIT = "${@d.getVar('GITHUB_SHA') or d.getVar('GIT_COMMIT') or 'unknown'}"
-    SENSORNODE_BUILD_NUMBER = "${@d.getVar('GITHUB_RUN_NUMBER') or d.getVar('BUILD_NUMBER') or 'local'}"
+    SENSORNODE_GIT_COMMIT = "${@d.getVar('GIT_COMMIT') or 'unknown'}"
+    SENSORNODE_BUILD_NUMBER = "${@d.getVar('BUILD_NUMBER') or 'local'}"
     SENSORNODE_IMAGE_VERSION = "${@d.getVar('SENSORNODE_VERSION') or '0.3.0'}-${SENSORNODE_BUILD_NUMBER}-${SENSORNODE_GIT_COMMIT}"
     # testimage boots the bare ext4 rootfs without the Mender partition table,
     # so the boot and data mounts must not drop the CI image into emergency mode.

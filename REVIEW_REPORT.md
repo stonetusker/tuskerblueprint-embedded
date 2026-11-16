@@ -23,22 +23,22 @@ verified_by:
 
 | Check | Result | Detail |
 |---|---|---|
-| Specification metadata | Pass | validated 217 controlled Markdown specifications with 217 unique identifiers |
+| Specification metadata | Pass | validated 218 controlled Markdown specifications with 218 unique identifiers |
 | Traceability | Pass | validated 56 referenced test identifiers |
-| Markdown links | Pass | validated relative links in 218 Markdown files |
-| YAML syntax | Pass | validated YAML syntax in 38 files |
+| Markdown links | Pass | validated relative links in 219 Markdown files |
+| YAML syntax | Pass | validated YAML syntax in 31 files |
 | Yocto layer policy | Pass | validated Yocto layer structure, Mender integration contract, and release identity policy |
 | Ubuntu 24 portability policy | Pass | validated Ubuntu 24.x portability assets for x86_64 and aarch64 hosts |
-| GitHub workflow policy | Pass | validated policy structure in 7 GitHub workflows |
+| Jenkins pipeline policy | Pass | validated policy in 5 Jenkins pipelines and 5 job definitions |
 | Repository security policy | Pass | validated repository security and architecture policy controls |
 | Python syntax | Pass |  |
-| Shell syntax | Pass | Validated shell syntax for 34 files. |
+| Shell syntax | Pass | Validated shell syntax for 36 files. |
 | Go tests | Pass | ok  	stonetusker.com/tuskerblueprint/sensornode/cmd/sensornode	(cached) |
-| SensorNode endpoint integration | Pass | ...                                                                      [100%]<br>3 passed in 0.04s |
+| SensorNode endpoint integration | Pass | ...                                                                      [100%]<br>3 passed in 0.08s |
 | Shell executable permissions | Pass | all shell scripts executable |
-| Yocto layer assets | Pass | 12 native Yocto metadata files |
-| Immutable source lock enforcement | Pass | release workflow requires kas/source-lock.yml and validates exact commits |
-| Jenkins job XML | Pass | Jenkins Pipeline job XML is well formed |
+| Yocto layer assets | Pass | 17 native Yocto metadata files |
+| Immutable source lock enforcement | Pass | release pipeline requires kas/source-lock.yml and validates exact commits |
+| Jenkins job XML | Pass | Jenkins job XML is well formed |
 
 ## Engineering Review Boundaries
 
@@ -46,4 +46,4 @@ The review validates repository structure, syntax, local application tests, trac
 
 ## Review Time
 
-2026-09-18T13:48:26.407842+00:00
+2026-11-16T11:08:34.704623+00:00

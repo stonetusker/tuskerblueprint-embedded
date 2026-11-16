@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-09-18
-updated: 2026-11-07
+updated: 2026-11-16
 traces_to:
   - OPS-001
   - RUN-MENDER-001
@@ -23,7 +23,7 @@ Concrete recovery procedure for the single Ubuntu 24 host (`192.168.0.109`, `doc
 
 ## Purpose
 
-Restore Jenkins, MinIO, the GitHub Actions runner, the Jenkins agent, and the Mender server to a known-good running state with the fewest manual steps, and confirm each one before relying on it (e.g. before a demo).
+Restore Jenkins, MinIO, the Jenkins agent, and the Mender server to a known-good running state with the fewest manual steps, and confirm each one before relying on it (e.g. before a demo).
 
 ## Quick path (one command)
 
@@ -44,13 +44,12 @@ A `FAIL` line names the failing service; use the manual procedure below for that
 
 ## What restarts automatically
 
-Docker itself (`systemctl is-enabled docker`), the GitHub Actions runner, and the Jenkins agent are systemd units that are `enabled`, so they come back on their own after a reboot.
+Docker itself (`systemctl is-enabled docker`) and the Jenkins agent are systemd units that are `enabled`, so they come back on their own after a reboot.
 
 | Service | Restart mechanism | Comes back after reboot on its own? |
 |---|---|---|
 | Jenkins (`infra/compose/jenkins`) | Compose `restart: unless-stopped` | Yes |
 | MinIO cache (`infra/compose/minio`) | Compose `restart: unless-stopped` | Yes |
-| GitHub Actions runner | systemd, `enabled` | Yes |
 | Jenkins agent `ubuntu24` (label `yocto-vps8`) | systemd `jenkins-agent.service`, `enabled` | Yes — it retries until Jenkins is up (expect one or two `Waiting 7 seconds before retry` lines in the journal, then `Connected`) |
 | Mender server (`~/mender/integration-3.8.5` + storage/override) | `unless-stopped`, set on the existing containers by `scripts/demo-services-up.sh` | Yes, once the script has run at least once on the current containers (see below). Dependants may crash-loop for a few seconds until `nats` and `mongo` are up; run the script after boot to settle them. |
 | Reverse proxy (`infra/compose/reverse-proxy`) | Compose `restart: unless-stopped` | Not applicable today — not deployed; no `BASE_DOMAIN`/`ACME_EMAIL` configured. |
@@ -99,11 +98,10 @@ Use this when the quick path reports a failure, or to understand what the script
 
 ```bash
 docker ps -a --format 'table {{.Names}}\t{{.Status}}'
-systemctl is-active actions.runner.stonetusker-tuskerblueprint-embedded.subeesh-ubuntu24-laptop.service
 systemctl is-active jenkins-agent.service
 ```
 
-Expect `jenkins-jenkins-1` and `minio-minio-1` `Up (healthy)` and both units `active`. The `integration-385-*` containers are `Up` once the restart policy has been applied; otherwise some or all are `Exited`, `5fe1e2503f5c_integration-385-mender-nats-1` in particular, and the nats-dependent services show `Restarting`. `yocto-30-builder` (`Exited (137)`) is an old, unused builder container and can be ignored.
+Expect `jenkins-jenkins-1` and `minio-minio-1` `Up (healthy)` and the agent unit `active`. The `integration-385-*` containers are `Up` once the restart policy has been applied; otherwise some or all are `Exited`, `5fe1e2503f5c_integration-385-mender-nats-1` in particular, and the nats-dependent services show `Restarting`. `yocto-30-builder` (`Exited (137)`) is an old, unused builder container and can be ignored.
 
 If the agent unit is missing on a rebuilt host, install it once:
 

@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -23,7 +23,7 @@ Use templates for new controlled documents. Add every new requirement and test t
 
 ## Implementation Documents
 
-`docs/16-implementation/` explains how the controlled requirements map to the repository's native code, Yocto metadata, CI workflows, QEMU tests, Mender boundary, Jenkins controls, and VPS8 automation.
+`docs/16-implementation/` explains how the controlled requirements map to the repository's native code, Yocto metadata, CI workflows, QEMU tests, Mender boundary, Jenkins pipelines and controls, and VPS8 automation.
 
 ## Ubuntu 24 Step-by-Step Implementation
 
@@ -37,7 +37,7 @@ Use these implementation guides in sequence:
 6. [Yocto Build Step by Step](16-implementation/yocto-build-step-by-step.md)
 7. [MinIO Cache Step by Step](16-implementation/minio-cache-step-by-step.md)
 8. [QEMU Validation Step by Step](16-implementation/qemu-validation-step-by-step.md)
-9. [GitHub Actions Step by Step](16-implementation/github-actions-step-by-step.md)
+9. [Jenkins Pipelines Step by Step](16-implementation/jenkins-pipelines-step-by-step.md)
 10. [Jenkins Step by Step](16-implementation/jenkins-step-by-step.md)
 11. [Jenkins MCP and Claude Step by Step](16-implementation/jenkins-mcp-claude-step-by-step.md)
 12. [Mender Server Step by Step](16-implementation/mender-server-step-by-step.md)

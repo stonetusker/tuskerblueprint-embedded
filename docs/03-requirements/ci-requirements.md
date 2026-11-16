@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - PRD-003
 verified_by:
@@ -23,10 +23,10 @@ verified_by:
 
 | ID | Requirement | Priority | Verification |
 |---|---|---|---|
-| CI-REQ-001 | GitHub Actions shall be the authoritative continuous-build orchestrator. | Must | TEST-CI-001 |
-| CI-REQ-002 | GitHub Actions and Jenkins shall invoke common repository scripts. | Must | TEST-CI-002 |
+| CI-REQ-001 | Jenkins shall be the only CI/CD orchestrator; the Git host shall run no CI workflows. | Must | TEST-CI-001 |
+| CI-REQ-002 | Every Jenkins pipeline shall invoke common repository scripts rather than implement build logic. | Must | TEST-CI-002 |
 | CI-REQ-003 | Full Yocto build concurrency shall be limited until resource evidence supports expansion. | Must | TEST-CI-003 |
-| CI-REQ-004 | Untrusted pull requests shall not receive unrestricted cache-write or deployment credentials. | Must | TEST-SEC-003 |
+| CI-REQ-004 | Branches other than main shall not receive cache-write, signing or deployment credentials. | Must | TEST-SEC-003 |
 | CI-REQ-005 | A main-branch failure shall retain actionable logs and test reports. | Must | TEST-CI-004 |
 
 ## Interpretation

@@ -4,11 +4,10 @@
   roles:
     - common
     - docker
-    - github_runner
-    - github_release_runner
     - minio
     - jenkins
     - jenkins_agent
+    - jenkins_release_agent
     - mender
     - qemu_fleet
     - reverse_proxy

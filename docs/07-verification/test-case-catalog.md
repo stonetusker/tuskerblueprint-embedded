@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - PRD-003
 verified_by:
@@ -40,8 +40,8 @@ This catalog defines every stable test identifier referenced by the requirements
 | TEST-BUILD-002 | The build shall run as an unprivileged user in a pinned builder environment. | BLD-REQ-001 | Planned |
 | TEST-BUILD-003 | The build shall support clean, cached, CI, release, and broken-demo configurations. | BLD-REQ-002 | Planned |
 | TEST-CACHE-001 | Measure clean and shared-cache build performance under equivalent conditions. | BLD-REQ-003, PRD-REQ-003 | Planned |
-| TEST-CI-001 | GitHub Actions shall be the authoritative continuous-build orchestrator. | CI-REQ-001 | Planned |
-| TEST-CI-002 | GitHub Actions and Jenkins shall invoke common repository scripts. | CI-REQ-002 | Planned |
+| TEST-CI-001 | Jenkins shall be the only CI/CD orchestrator; the Git host shall run no CI workflows. | CI-REQ-001 | Planned |
+| TEST-CI-002 | Every Jenkins pipeline shall invoke common repository scripts rather than implement build logic. | CI-REQ-002 | Planned |
 | TEST-CI-003 | Full Yocto build concurrency shall be limited until resource evidence supports expansion. | CI-REQ-003 | Planned |
 | TEST-CI-004 | A main-branch failure shall retain actionable logs and test reports. | CI-REQ-005 | Planned |
 | TEST-CONTENT-001 | Each episode shall map to a reproducible repository tag. | CONTENT-REQ-001 | Planned |

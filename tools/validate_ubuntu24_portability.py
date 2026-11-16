@@ -20,10 +20,10 @@ dockerfile = (root / 'containers/yocto-builder/Dockerfile').read_text()
 if 'FROM ubuntu:24.04' not in dockerfile:
     raise SystemExit('Yocto builder is not based on Ubuntu 24.04')
 
-for workflow in (root / '.github/workflows').glob('*.yml'):
-    text = workflow.read_text()
-    if re.search(r'runs-on:\s*\[[^\]]*\bx64\b', text):
-        raise SystemExit(f'architecture-specific x64 runner label remains in {workflow.relative_to(root)}')
+for pipeline in (root / 'ci/jenkins').rglob('*Jenkinsfile'):
+    text = pipeline.read_text()
+    if re.search(r"label\s+'[^']*\b(x64|amd64|x86_64)\b", text):
+        raise SystemExit(f'architecture-specific agent label in {pipeline.relative_to(root)}')
 
 qemu = (root / 'qemu-fleet/launch/qemu-device.sh').read_text()
 if 'hostfwd=tcp:127.0.0.1:' not in qemu:

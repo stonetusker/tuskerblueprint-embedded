@@ -26,8 +26,8 @@ MinIO stores separate downloads, sstate, build-evidence, and release-evidence bu
 ## Key Decisions
 
 - Build and release implementation lives in repository scripts, not CI-specific logic.
-- GitHub Actions is authoritative for continuous build.
-- Jenkins exists for the enterprise diagnostic story and cannot promote OTA releases.
+- Jenkins is the only CI/CD orchestrator; GitHub hosts the Git repository only (ADR-011).
+- Signing and OTA promotion run only in the dedicated Jenkins release jobs, after named approval and on the isolated release agent; the CI and diagnostic jobs cannot sign or deploy.
 - QEMU is a virtual validation gate, not physical-board certification.
 - Promotion uses the exact tested artifact.
 - AI remains advisory and least-privileged.

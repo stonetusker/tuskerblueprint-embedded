@@ -15,7 +15,7 @@ Usage: scripts/bootstrap-ubuntu24.sh [--skip-builder]
 Installs the Ubuntu 24.04 host packages required for local development,
 Yocto container builds, QEMU validation, Docker Compose services, Ansible,
 and repository verification. The script does not install or configure
-third-party SaaS credentials, GitHub runners, Jenkins, or Mender server data.
+third-party SaaS credentials, Jenkins agents, Jenkins, or Mender server data.
 USAGE
       exit 0
       ;;

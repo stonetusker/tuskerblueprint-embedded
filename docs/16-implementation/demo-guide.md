@@ -22,7 +22,7 @@ verified_by:
 
 How to give a live demonstration of TuskerBlueprint Embedded on the single Ubuntu 24 host (`192.168.0.109`, `docker.mender.io`), starting from a machine that has just been powered on or rebooted.
 
-The demo shows the SensorNode lifecycle end to end: a Yocto-built embedded Linux image, CI on a self-hosted GitHub Actions runner and Jenkins, a shared MinIO build cache, and a Mender over-the-air (OTA) update to a QEMU device that installs a healthy release and **automatically rolls back** a broken one.
+The demo shows the SensorNode lifecycle end to end: a Yocto-built embedded Linux image, CI/CD in Jenkins (GitHub only hosts the repository), a shared MinIO build cache, and a Mender over-the-air (OTA) update to a QEMU device that installs a healthy release and **automatically rolls back** a broken one.
 
 ## What is real, and what is not
 
@@ -33,7 +33,8 @@ Say this plainly; it keeps the demo credible.
 | Mender OTA install, reboot, health gate, commit on a QEMU canary | Proven (EVID-003), re-run on 2026-11-07 |
 | Automatic device rollback of an unhealthy release | Proven (EVID-004), re-run on 2026-11-07 |
 | Jenkins pipeline and `FAILURE_DRILL` (broken image stopped in CI) | Rehearsed on the host on 2026-11-12 with the pipeline scripts (broken image built in 246 s; QEMU test `test_02_health_endpoint` failed as intended). Run it once from the Jenkins UI before showing it live |
-| GitHub Actions self-hosted runner, nightly builds | Working |
+| Jenkins branch CI (`sensornode-ci`) and nightly build (`sensornode-nightly`) | Jobs defined 2026-11-16; run both once on the host before showing them live |
+| Jenkins release candidate, signing and Mender promotion jobs | Defined, but need the `firmware-release` agent and signing key — roadmap |
 | Jenkins MCP / Claude diagnostics | Contract and guide only — present as roadmap, do not demo live |
 | Artifact signing, three-device fleet, physical board | Not done — roadmap |
 
@@ -46,7 +47,7 @@ Your laptop needs `192.168.0.109 docker.mender.io` in `/etc/hosts`.
 | Mender UI | <https://docker.mender.io/ui/> (self-signed certificate; accept it once) | Mender admin account already in use (also in `~/mender/automation.env` on the host) |
 | Jenkins | <http://docker.mender.io:8088/> | Jenkins admin account |
 | MinIO cache console | <http://docker.mender.io:9001/> | MinIO root user from `infra/compose/minio` |
-| GitHub Actions | `stonetusker/tuskerblueprint-embedded` → Actions; Settings → Actions → Runners | GitHub account |
+| GitHub (repository only) | `stonetusker/tuskerblueprint-embedded` | GitHub account |
 | Device app | <http://127.0.0.1:18091/version> through the SSH tunnel below — **only while the QEMU device is running** (see [The device app port](#the-device-app-port-18091)) | — |
 
 ## 1. After a restart: bring everything up (5 minutes)
@@ -65,7 +66,7 @@ Never run `docker compose down` on the Mender stack: its data is not in named vo
 
 - [ ] `scripts/demo-services-up.sh --check` is all `PASS`.
 - [ ] Mender UI opens and you are logged in; **Devices** shows `sensornode-canary-01` accepted; **Releases** lists `sensornode-0.3.0-102-ff2bd03` and `sensornode-0.3.0-103-ff2bd03-broken`.
-- [ ] Jenkins opens, job `sensornode-diagnostic-build` is visible, node `ubuntu24` is online (Manage Jenkins → Nodes).
+- [ ] Jenkins opens, jobs `sensornode-ci`, `sensornode-nightly` and `sensornode-diagnostic-build` are visible, node `ubuntu24` is online (Manage Jenkins → Nodes).
 - [ ] No QEMU device is already running: `pgrep -fa qemu-system` prints nothing.
 - [ ] Nothing else is building on the host (`pgrep -fa bitbake` prints nothing); a build slows QEMU noticeably.
 - [ ] Laptop: four windows ready — Mender UI (Deployments tab), Jenkins, and two terminals (layout below).
@@ -107,9 +108,9 @@ Open `README.md` and `docs/04-architecture/`. The message: one specification-dri
 
 ### 3.2 Build and CI (5 min)
 
-1. **GitHub Actions** — show the self-hosted runner online and a recent successful nightly run (`.github/workflows/nightly.yml`).
+1. **Jenkins CI** — show `sensornode-ci` with one job per branch, discovered by polling GitHub (GitHub hosts the code, Jenkins runs everything), the green `main` build, and a recent `sensornode-nightly` run (02:00 UTC).
 2. **MinIO cache** — open the console and show the `yocto-sstate` and `yocto-downloads` buckets (also `release-artifacts`, `release-evidence`); point out that a warm-cache image build takes minutes instead of hours (`artifacts/build-duration-seconds`: 106 s on the host, 240 s in Jenkins build 14).
-3. **Jenkins** — open `sensornode-diagnostic-build` and its last builds. Stages: Checkout → Validate → Build and QEMU Test → Diagnostic Evidence → Human Approval for Rebuild → Approved Rebuild (the last two run only after a failure with `DIAGNOSTIC_REBUILD`). Open the last green build → **Tests**: the QEMU runtime tests (oeqa: ping, ssh, systemd, and the four `SensorNodeRuntimeTest` checks) appear as individual test cases, published from `artifacts/test-reports/oeqa-junit.xml`.
+3. **Jenkins diagnostics** — open `sensornode-diagnostic-build` and its last builds. Stages: Checkout → Validate → Build and QEMU Test → Diagnostic Evidence → Human Approval for Rebuild → Approved Rebuild (the last two run only after a failure with `DIAGNOSTIC_REBUILD`). Open the last green build → **Tests**: the QEMU runtime tests (oeqa: ping, ssh, systemd, and the four `SensorNodeRuntimeTest` checks) appear as individual test cases, published from `artifacts/test-reports/oeqa-junit.xml`.
 
 Optional, live (only if rehearsed): **Build with Parameters** → `FAILURE_DRILL` = true → Build. Jenkins builds `sensornode-image-broken`, the QEMU health test fails (**Tests** shows `test_02_health_endpoint` failed: `/health` returns 503), the build goes red, the diagnostic bundle is archived, and nothing is promoted to Mender. With a warm cache it takes about 10 minutes (build about 4 minutes, QEMU test about 2–4 minutes). Start it at the beginning of section 3.2 so it finishes while you talk. This is the "pipeline prevention" control (`mender/demo-scenarios/pipeline-prevention.md`).
 

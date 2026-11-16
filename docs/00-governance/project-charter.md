@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   []
 verified_by:
@@ -32,7 +32,7 @@ Project C is built first and remains independently demonstrable before Project A
 ## Success Conditions
 
 - A clean and cached Yocto build are measured under controlled conditions.
-- GitHub Actions is the authoritative CI pipeline.
+- Jenkins is the only CI/CD orchestrator; GitHub hosts the repository only.
 - QEMU testing blocks unsafe promotion.
 - Mender updates a QEMU fleet and supports rollback.
 - Jenkins exposes diagnostic evidence through a constrained MCP path.

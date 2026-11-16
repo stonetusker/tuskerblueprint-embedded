@@ -1,8 +1,4 @@
 # Copy these as inventory/group variables and replace every value from an official source.
-github_runner_version: required
-github_runner_sha256: required
-github_runner_repository: https://github.com/stonetusker-systems/tuskerblueprint-embedded
-
 minio_image_tag: required
 minio_client_url: required
 minio_client_sha256: required

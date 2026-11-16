@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-19
-updated: 2026-07-20
+updated: 2026-11-16
 traces_to:
   - SYS-REQ-001
   - SEC-REQ-002
@@ -20,14 +20,14 @@ verified_by:
 
 ## Purpose
 
-Developers commit to GitHub. GitHub Actions schedules work on the VPS8 runner. The builder consumes pinned Yocto sources and shared caches, emits an image, and passes it to QEMU tests. Passing candidates are signed and uploaded to Mender. QEMU devices poll Mender. Jenkins exposes selected evidence to Claude through MCP, with human approval enforced before rebuild.
+Developers push to the GitHub repository. Jenkins polls it and schedules work on the VPS8 build agent. The builder consumes pinned Yocto sources and shared caches, emits an image, and passes it to QEMU tests. Passing candidates are signed on the isolated release agent after approval and uploaded to Mender by a separately approved Jenkins job. QEMU devices poll Mender. Jenkins exposes selected evidence to Claude through MCP, with human approval enforced before rebuild.
 
 
 ## Key Decisions
 
 - Build and release implementation lives in repository scripts, not CI-specific logic.
-- GitHub Actions is authoritative for continuous build.
-- Jenkins exists for the enterprise diagnostic story and cannot promote OTA releases.
+- Jenkins is the only CI/CD orchestrator; GitHub hosts the Git repository only (ADR-011).
+- Signing and OTA promotion run only in the dedicated Jenkins release jobs, after named approval and on the isolated release agent; the CI and diagnostic jobs cannot sign or deploy.
 - QEMU is a virtual validation gate, not physical-board certification.
 - Promotion uses the exact tested artifact.
 - AI remains advisory and least-privileged.
