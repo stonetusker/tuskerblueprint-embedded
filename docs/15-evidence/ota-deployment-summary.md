@@ -79,7 +79,7 @@ From that directory's `SHA256SUMS`:
 
 ## Open Points
 
-- Artifacts are unsigned and the client does not enforce `ArtifactVerifyKey`; signing requires the isolated `release` runner and key described in `docs/08-security/artifact-signing.md`.
+- These artifacts were unsigned and the client does not enforce `ArtifactVerifyKey`. Release candidates are now signed on the isolated `firmware-release` Jenkins agent ([Artifact Signing](../08-security/artifact-signing.md)); device-side enforcement is still open.
 - `~/mender/mender.env` sets `MENDER_SERVER_TAG=main`, so server images are not pinned to 3.8.5.
 - Evidence is on the build host only; publish it to the `release-evidence` MinIO bucket before external use.
 - QEMU validation is not physical-board validation.

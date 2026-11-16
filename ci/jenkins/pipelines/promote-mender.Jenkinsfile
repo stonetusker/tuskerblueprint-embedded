@@ -6,8 +6,11 @@
 // creates a canary-only deployment. Wider rollout is a separate decision.
 //
 // Credentials: Jenkins secret-text credential `mender-access-token` (override the
-// id with the global variable MENDER_CREDENTIALS_ID). MENDER_SERVER_URL defaults to
-// https://docker.mender.io.
+// id with the global variable MENDER_CREDENTIALS_ID), a Mender personal access token.
+// MENDER_SERVER_URL defaults to https://docker.mender.io. The release agent node sets
+// MENDER_CA_CERT (the lab server's self-signed certificate) and RELEASE_MINIO_ALIAS.
+// The release-candidate build archives promotion-parameters.env with the first
+// three parameters.
 
 pipeline {
   agent none

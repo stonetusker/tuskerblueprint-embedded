@@ -24,7 +24,7 @@ Execute Jenkins pipeline stages, limit concurrency, isolate workspaces, protect 
 | Agent label | Host account | Runs | Holds | Never has |
 |---|---|---|---|---|
 | `yocto-vps8` | build user (Docker group) | CI, nightly, diagnostic and release-candidate build/test stages | Yocto cache, Docker | signing key, Mender token, release-evidence write access |
-| `firmware-release` | `release-agent` (no Docker) | signing, release-evidence publication, Mender promotion | signing key (0600), `mender-artifact`, `mender-cli`, `mc` | Docker, Yocto cache, build workspaces |
+| `firmware-release` | `release-agent` (no Docker, no sudo) | signing, release-evidence publication, Mender promotion | signing key (0600), `mender-artifact`, `mc` alias `tusker-release` (write, no delete, `release-evidence` only), Mender access token (Jenkins credential) | Docker, Yocto cache, build workspaces |
 
 The build agent runs one executor so full Yocto builds never run concurrently on the host.
 

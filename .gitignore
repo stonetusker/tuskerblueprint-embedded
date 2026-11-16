@@ -37,6 +37,8 @@ crash.log
 kubeconfig
 /infrastructure/ansible/inventories/*/hosts.yml
 *.pem
+# Public Mender verification keys only; private keys never belong in Git.
+!mender/keys/*-verify*.pem
 *.key
 *.p12
 *.pfx

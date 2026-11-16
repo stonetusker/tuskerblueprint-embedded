@@ -20,8 +20,8 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>SIGN_AND_PUBLISH</name>
-          <description>After approval, sign on the firmware-release agent and publish the immutable candidate. Tick only when that agent is online.</description>
-          <defaultValue>false</defaultValue>
+          <description>After approval, sign on the firmware-release agent and publish the immutable candidate. Untick for a tested, unsigned candidate only.</description>
+          <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty></properties>

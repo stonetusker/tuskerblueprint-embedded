@@ -12,8 +12,14 @@ def main() -> int:
     root = Path('.').resolve()
     failures = []
 
+    def public_key_only(path: Path) -> bool:
+        # A public verification key (for example mender/keys/*.pem) is allowed.
+        text = path.read_text(encoding='utf-8', errors='replace')
+        return 'BEGIN PUBLIC KEY' in text and 'PRIVATE' not in text
+
     prohibited_files = [p for p in repo_files(root)
-                        if p.suffix in {'.pem', '.key'} or p.name in {'id_rsa', 'id_ed25519'}]
+                        if (p.suffix == '.key' or p.name in {'id_rsa', 'id_ed25519'})
+                        or (p.suffix == '.pem' and not public_key_only(p))]
     if prohibited_files:
         failures.append('prohibited credential-like files: ' + ', '.join(str(p.relative_to(root)) for p in prohibited_files))
 

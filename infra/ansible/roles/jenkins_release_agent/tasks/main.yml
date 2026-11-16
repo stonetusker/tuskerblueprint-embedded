@@ -1,38 +1,45 @@
 # Isolated Jenkins agent for signing and Mender promotion (label: firmware-release).
-# It holds the Mender signing key and release tools, is launched by the Jenkins
-# controller over SSH, and has no Docker group membership or Yocto cache access.
+#
+# It runs as the unprivileged user release-agent (no Docker, no sudo), connects to
+# the controller as an inbound WebSocket agent, holds the Mender signing key, and
+# can write to the release-evidence bucket but not delete from it or read the Yocto
+# cache. The Jenkins node itself (name release-agent, label firmware-release, one
+# executor, exclusive use, node variables MENDER_CA_CERT and RELEASE_MINIO_ALIAS) is
+# created on the controller; its agent secret is passed in here.
+#
+# Required (vault): vault_mender_signing_key (EC P-256 key, "BEGIN EC PRIVATE KEY"),
+# vault_release_agent_secret (Jenkins agent secret), vault_release_minio_secret_key
+# (secret of the MinIO user release-agent with policy release-agent-publish).
+# Optional: mender_server_ca_cert (PEM text of the Mender server certificate).
 - name: Validate release agent inputs
   ansible.builtin.assert:
     that:
-      - mender_artifact_url != 'required'
-      - mender_artifact_sha256 != 'required'
-      - minio_client_url != 'required'
-      - minio_client_sha256 != 'required'
-      - mender_cli_url != 'required'
-      - mender_cli_sha256 != 'required'
       - vault_mender_signing_key is defined
-      - vault_jenkins_release_agent_public_key is defined
-    fail_msg: Release tool versions, checksums, the signing key, and the controller key for the release agent are required.
+      - "'BEGIN EC PRIVATE KEY' in vault_mender_signing_key"
+      - vault_release_agent_secret is defined
+      - vault_release_minio_secret_key is defined
+    fail_msg: >-
+      The signing key (SEC1 EC PEM, which mender-artifact requires), the Jenkins agent
+      secret and the release MinIO secret are required for the release agent.
 
-- name: Install release agent runtime
+- name: Install release agent runtime and signing tool
   ansible.builtin.apt:
     name:
       - openjdk-17-jre-headless
       - git
       - python3
+      - curl
+      - openssl
+      - mender-artifact
     state: present
 
 - name: Create isolated release agent user
   ansible.builtin.user:
     name: release-agent
+    comment: Jenkins firmware-release agent
     create_home: true
     shell: /bin/bash
-
-- name: Authorize Jenkins controller SSH key for the release agent
-  ansible.posix.authorized_key:
-    user: release-agent
-    key: "{{ vault_jenkins_release_agent_public_key }}"
-    state: present
+    groups: []
 
 - name: Create release agent directories
   ansible.builtin.file:
@@ -44,7 +51,7 @@
   loop:
     - /var/lib/tusker-release
     - /var/lib/tusker-release/bin
-    - /home/release-agent/workspace
+    - /home/release-agent/jenkins
 
 - name: Install Mender signing key
   ansible.builtin.copy:
@@ -55,17 +62,80 @@
     mode: '0600'
   no_log: true
 
-- name: Download verified release tools
-  ansible.builtin.get_url:
-    url: "{{ item.url }}"
-    dest: "/var/lib/tusker-release/bin/{{ item.name }}"
-    checksum: "sha256:{{ item.sha256 }}"
+- name: Derive the public verification key
+  ansible.builtin.command:
+    cmd: openssl ec -in /var/lib/tusker-release/mender-signing.pem -pubout -out /var/lib/tusker-release/mender-verify.pem
+    creates: /var/lib/tusker-release/mender-verify.pem
+  become: true
+  become_user: release-agent
+
+- name: Install the Mender server certificate
+  ansible.builtin.copy:
+    content: "{{ mender_server_ca_cert }}"
+    dest: /var/lib/tusker-release/mender-server.crt
     owner: release-agent
     group: release-agent
-    mode: '0750'
-  loop:
-    - { name: mender-artifact, url: "{{ mender_artifact_url }}", sha256: "{{ mender_artifact_sha256 }}" }
-    - { name: mc, url: "{{ minio_client_url }}", sha256: "{{ minio_client_sha256 }}" }
-    - { name: mender-cli, url: "{{ mender_cli_url }}", sha256: "{{ mender_cli_sha256 }}" }
-  loop_control:
-    label: "{{ item.name }}"
+    mode: '0644'
+  when: mender_server_ca_cert is defined
+
+- name: Configure the release MinIO alias (write, no delete)
+  ansible.builtin.command:
+    argv: [mc, --no-color, alias, set, tusker-release, "{{ release_minio_endpoint | default('http://127.0.0.1:9000') }}",
+           release-agent, "{{ vault_release_minio_secret_key }}"]
+  become: true
+  become_user: release-agent
+  changed_when: false
+  no_log: true
+
+- name: Install the Jenkins agent secret
+  ansible.builtin.copy:
+    content: "{{ vault_release_agent_secret }}"
+    dest: /home/release-agent/jenkins/secret-file
+    owner: release-agent
+    group: release-agent
+    mode: '0600'
+  no_log: true
+
+- name: Download the Jenkins agent
+  ansible.builtin.get_url:
+    url: "{{ jenkins_controller_url | default('http://127.0.0.1:8088/') }}jnlpJars/agent.jar"
+    dest: /home/release-agent/jenkins/agent.jar
+    owner: release-agent
+    group: release-agent
+    mode: '0644'
+
+- name: Install the release agent service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/jenkins-release-agent.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Jenkins inbound agent (release-agent, label firmware-release)
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=simple
+      User=release-agent
+      Group=release-agent
+      WorkingDirectory=/home/release-agent/jenkins
+      Environment=PATH=/var/lib/tusker-release/bin:/usr/local/bin:/usr/bin:/bin
+      ExecStart=/usr/bin/java -jar /home/release-agent/jenkins/agent.jar \
+        -url {{ jenkins_controller_url | default('http://127.0.0.1:8088/') }} \
+        -secret @/home/release-agent/jenkins/secret-file \
+        -name release-agent -webSocket -workDir /home/release-agent/jenkins
+      Restart=always
+      RestartSec=30
+      NoNewPrivileges=true
+      ProtectSystem=full
+      PrivateTmp=true
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start the release agent
+  ansible.builtin.systemd:
+    name: jenkins-release-agent.service
+    daemon_reload: true
+    enabled: true
+    state: started

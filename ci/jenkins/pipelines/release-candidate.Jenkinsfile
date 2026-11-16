@@ -25,8 +25,8 @@ pipeline {
   parameters {
     string(name: 'VERSION', defaultValue: '', trim: true, description: 'Semantic version, for example 0.4.0')
     string(name: 'SOURCE_COMMIT', defaultValue: '', trim: true, description: 'Full 40-character commit that is already on main')
-    booleanParam(name: 'SIGN_AND_PUBLISH', defaultValue: false,
-                 description: 'After approval, sign on the firmware-release agent and publish the immutable candidate. Tick only when that agent is online.')
+    booleanParam(name: 'SIGN_AND_PUBLISH', defaultValue: true,
+                 description: 'After approval, sign on the firmware-release agent and publish the immutable candidate. Untick for a tested, unsigned candidate only.')
   }
 
   stages {
@@ -171,12 +171,23 @@ pipeline {
             [[ -d artifacts/sbom ]] && cp -a artifacts/sbom "$publish/"
             [[ -d artifacts/release-qemu ]] && cp -a artifacts/release-qemu "$publish/"
             ARTIFACT="$publish/$name" scripts/sign-artifact.sh
+            mender-artifact validate "$publish/$name" --key /var/lib/tusker-release/mender-verify.pem
             python3 tools/publish_candidate.py \
               --artifact-root "$publish" \
               --destination "minio://release-evidence/${VERSION}/${SOURCE_COMMIT}"
+
+            # Everything sensornode-promote-mender needs, printed and archived.
+            artifact_name="$(mender-artifact read "$publish/$name" | awk '$1 == "Name:" {print $2; exit}')"
+            {
+              echo "CANDIDATE_URI=minio://release-evidence/${VERSION}/${SOURCE_COMMIT}/${name}"
+              echo "EXPECTED_SHA256=$(sha256sum "$publish/$name" | awk '{print $1}')"
+              echo "ARTIFACT_NAME=${artifact_name}"
+            } > artifacts/promotion-parameters.env
+            echo "Parameters for sensornode-promote-mender:"
+            cat artifacts/promotion-parameters.env
           '''
         }
-        archiveArtifacts artifacts: 'artifacts/publish/*.mender.sha256', fingerprint: true
+        archiveArtifacts artifacts: 'artifacts/publish/*.mender.sha256, artifacts/promotion-parameters.env', fingerprint: true
       }
     }
   }

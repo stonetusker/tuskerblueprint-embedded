@@ -69,15 +69,15 @@ Runs on `main` at 02:00 UTC: removes `build/tmp`, rebuilds the CI image from the
 
 - `VERSION`: semantic version, for example `0.4.0`
 - `SOURCE_COMMIT`: the full 40-character commit, which must already be on `main`
-- `SIGN_AND_PUBLISH`: unticked by default. Tick it only when the `firmware-release` agent is online; unticked, the job stops after the tested, unsigned candidate and its SBOM are archived on the build
+- `SIGN_AND_PUBLISH`: ticked by default; untick it for a tested, unsigned candidate only (the job then stops after archiving the candidate and its SBOM)
 
-The build stages run on `yocto-vps8`: input validation, `git merge-base --is-ancestor`, source-lock validation, the `kas/release.yml` build, the exact release disk booted in QEMU, the SBOM, and the unsigned candidate. The job then pauses at **Approve signing**. A member of `firmware-signing-approvers` approves it, and the signing stage runs on the isolated `firmware-release` agent. That stage signs the exact candidate and publishes it write-once to `minio://release-evidence/<version>/<commit>/`.
+The build stages run on `yocto-vps8`: input validation, `git merge-base --is-ancestor`, source-lock validation, the `kas/release.yml` build, the exact release disk booted in QEMU, the SBOM, and the unsigned candidate. The job then pauses at **Approve signing**. A member of `firmware-signing-approvers` approves it, and the signing stage runs on the isolated `firmware-release` agent. That stage signs the exact candidate, validates the signature with the public key, and publishes it write-once to `minio://release-evidence/<version>/<commit>/`. It ends by printing, and archiving as `promotion-parameters.env`, the `CANDIDATE_URI`, `EXPECTED_SHA256` and `ARTIFACT_NAME` for the promotion job.
 
 The **Approve signing** prompt (*Sign candidate* or *Abort*) waits at most 4 hours and holds no executor; with no answer the build ends ABORTED and the candidate stays archived. The signing stage fails after 30 minutes if no `firmware-release` agent is online, rather than queueing forever.
 
 ## 5. Promotion to Mender (`sensornode-promote-mender`)
 
-**Build with Parameters** with `CANDIDATE_URI`, `EXPECTED_SHA256`, `ARTIFACT_NAME` and `CANARY_DEVICE_IDS`. A member of `firmware-production-approvers` approves **Approve canary deployment**. The `firmware-release` agent then downloads the exact object, verifies the SHA-256, uploads it to Mender and creates a canary-only deployment. Wider rollout is a separate, later decision.
+**Build with Parameters** with `CANDIDATE_URI`, `EXPECTED_SHA256` and `ARTIFACT_NAME` copied from the release build's `promotion-parameters.env`, and `CANARY_DEVICE_IDS` (the Mender device ID from **Devices** in the Mender UI). A member of `firmware-production-approvers` approves **Approve canary deployment**. The `firmware-release` agent then downloads the exact object, verifies the SHA-256, uploads it to Mender (`scripts/upload-mender-artifact.sh`) and creates a canary-only deployment (`scripts/create-mender-deployment.sh`); both use the Mender REST API with curl. Wider rollout is a separate, later decision.
 
 ## 6. Credentials and settings
 
@@ -85,18 +85,33 @@ The **Approve signing** prompt (*Sign candidate* or *Abort*) waits at most 4 hou
 |---|---|---|
 | Git clone credential (SSH) | Jenkins credential, id in `JENKINS_GIT_CREDENTIALS_ID` | all jobs |
 | `MINIO_CACHE_CREDENTIALS_ID` (optional global variable) | names a username/password credential for MinIO cache writes; when unset, the build agent's pre-configured `mc` alias `tusker` is used | ci (main), nightly, release-candidate |
-| `mender-access-token` | Jenkins secret-text credential (id override: global variable `MENDER_CREDENTIALS_ID`) | promote-mender |
+| `mender-access-token` | Jenkins secret-text credential holding a Mender personal access token (lab: token `jenkins-firmware-release`, valid one year from 2026-11-16; id override: global variable `MENDER_CREDENTIALS_ID`) | promote-mender |
+| `MENDER_CA_CERT` | node variable on `release-agent`: `/var/lib/tusker-release/mender-server.crt`, the lab server's self-signed certificate | promote-mender |
 | `MENDER_SERVER_URL` (optional global variable) | defaults to `https://docker.mender.io` | promote-mender |
 | Signing key | `/var/lib/tusker-release/mender-signing.pem` on the `firmware-release` agent only (mode 0600) | release-candidate |
-| `RELEASE_MINIO_ALIAS` (optional global variable) | `mc` alias on the release agent with release-evidence access; default `tusker-release` | release-candidate, promote-mender |
+| `RELEASE_MINIO_ALIAS` | node variable on `release-agent`: `tusker-release`, the `mc` alias of MinIO user `release-agent` (policy `release-agent-publish`: read and write `release-evidence`, no delete, no cache access) | release-candidate, promote-mender |
 
 ## 7. Approval groups
 
-`firmware-signing-approvers` and `firmware-production-approvers` must exist as groups in Jenkins' authorisation strategy (for example with the role-strategy plugin) before the release jobs are used outside the lab. Jenkins administrators can always approve an input step. Do not give the AI/MCP identity any permission on the release jobs.
+The input steps name the groups `firmware-signing-approvers` and `firmware-production-approvers`. Jenkins administrators can always approve an input step.
+
+In the lab, Jenkins uses its own user database with *Logged-in users can do anything*, so every Jenkins user is an administrator and can approve. Jenkins' own user database has no groups. To restrict approval, connect Jenkins to LDAP or an OIDC provider that supplies these two groups, and switch to matrix or role-based authorisation so that ordinary users are not administrators. Do not give the AI/MCP identity any permission on the release jobs.
 
 ## 8. Release agent
 
-Provision the `firmware-release` agent with `infra/ansible/roles/jenkins_release_agent` (user `release-agent`, no Docker, signing key, verified `mender-artifact`, `mender-cli` and `mc`). Add it in **Manage Jenkins → Nodes** with label `firmware-release` and one executor. Until it exists, leave `SIGN_AND_PUBLISH` unticked; a signing run fails after 30 minutes of waiting for the agent, and a promotion run waits in the queue until its 2-hour pipeline timeout.
+The lab agent runs on the build host as Jenkins node `release-agent` (label `firmware-release`, one executor, used only by jobs that ask for that label):
+
+| Item | Value |
+|---|---|
+| Unix user | `release-agent`: no Docker, no sudo |
+| Service | `jenkins-release-agent.service`, an inbound WebSocket agent to `http://127.0.0.1:8088/` |
+| Work directory | `/home/release-agent/jenkins` |
+| Release files | `/var/lib/tusker-release/` (0700): `mender-signing.pem` (0600), `mender-verify.pem`, `mender-server.crt` |
+| Tools | `mender-artifact` (Ubuntu package), `mc`, `curl`, `python3`, `git` |
+
+`infra/ansible/roles/jenkins_release_agent` sets up the same agent on a new host. Create the node in **Manage Jenkins → Nodes** first and pass its secret as `vault_release_agent_secret`. If the agent is offline, a signing run fails after waiting 30 minutes. A promotion run waits in the queue until the pipeline's 2-hour timeout.
+
+Check the agent with `systemctl status jenkins-release-agent` on the host, or under **Manage Jenkins → Nodes → release-agent**.
 
 ## 9. Policy checks
 
