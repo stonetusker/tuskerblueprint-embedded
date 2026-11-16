@@ -33,7 +33,7 @@ Say this plainly; it keeps the demo credible.
 | Mender OTA install, reboot, health gate, commit on a QEMU canary | Proven (EVID-003), re-run on 2026-11-07 |
 | Automatic device rollback of an unhealthy release | Proven (EVID-004), re-run on 2026-11-07 |
 | Jenkins pipeline and `FAILURE_DRILL` (broken image stopped in CI) | Rehearsed on the host on 2026-11-12 with the pipeline scripts (broken image built in 246 s; QEMU test `test_02_health_endpoint` failed as intended). Run it once from the Jenkins UI before showing it live |
-| Jenkins branch CI (`sensornode-ci`) and nightly build (`sensornode-nightly`) | Jobs defined 2026-11-16; run both once on the host before showing them live |
+| Jenkins branch CI (`sensornode-ci`) and nightly build (`sensornode-nightly`) | `sensornode-ci » main` build #1 green on 2026-11-16 (Yocto build 611 s, 16 QEMU tests passed, cache published). Nightly first runs at 02:00 UTC on 2026-11-17 |
 | Jenkins release candidate, signing and Mender promotion jobs | Defined, but need the `firmware-release` agent and signing key — roadmap |
 | Jenkins MCP / Claude diagnostics | Contract and guide only — present as roadmap, do not demo live |
 | Artifact signing, three-device fleet, physical board | Not done — roadmap |
@@ -116,9 +116,15 @@ Optional, live (only if rehearsed): **Build with Parameters** → `FAILURE_DRILL
 
 ### 3.3 Fleet view in Mender (2 min)
 
-Mender UI → **Devices** (`sensornode-canary-01`, its inventory), **Releases** (the healthy `-102` and the deliberately broken `-103-broken`), **Deployments → Finished** (history of earlier proven runs).
+Mender UI → **Devices** (`sensornode-canary-01`, its inventory), **Software** (the healthy `-102` and the deliberately broken `-103-broken` releases), **Deployments → Finished** (history of earlier proven runs). How Mender OTA works, slide-free, is in [Mender OTA Explained](mender-ota-explained.md) Part 1.
 
 ### 3.4 Live OTA update and automatic rollback (about 7 min of runtime; allow 10)
+
+Two ways to run this section; both were rehearsed on the host:
+
+- **Mender web UI (preferred when the audience is non-technical):** boot the device from the terminal, then accept it, deploy the healthy release and the broken one entirely in the Mender UI. Follow [Mender OTA Explained](mender-ota-explained.md) Part 2 instead of the script below. Rehearsed 2026-11-16: healthy update about 80 s, rollback about 4.5 min.
+- **Scripted (below):** one command does enrolment and both deployments through the API while you narrate in the UI.
+
 
 In terminal A:
 

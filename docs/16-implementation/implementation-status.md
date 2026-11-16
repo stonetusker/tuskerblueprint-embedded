@@ -30,7 +30,7 @@ Live status on the Ubuntu 24 host `192.168.0.109` as of 2026-10-23.
 | Device rollback | Executed | Unhealthy candidate refused at `ArtifactCommit_Enter`, device back on last good (EVID-004) | — |
 | CI prevention rollback | Ready | `FAILURE_DRILL` Jenkins parameter, `sensornode-image-broken` | Execute and record |
 | MinIO cache benchmark | Running | `scripts/benchmark-build.sh` with a mirror-free clean case | Record EVID build benchmark |
-| Jenkins pipelines | Partial | Diagnostic job and failure drill proven; CI, nightly, release and promotion jobs defined in `ci/jenkins/` (2026-11-16) | First CI/nightly runs on the host; `firmware-release` agent and signing key |
+| Jenkins pipelines | Partial | Diagnostic job and failure drill proven; `sensornode-ci` main build #1 green on 2026-11-16 (checks, Yocto build 611 s, 16 QEMU tests with 0 failed and 2 skipped, cache published); nightly, release and promotion jobs created | First nightly run; `firmware-release` agent and signing key for release and promotion |
 | Artifact signing | Not started | — | Signing key custody, `ArtifactVerifyKey` in the image |
 | Jenkins pipeline | Ready | Agent `ubuntu24` now runs as `jenkins-agent.service` | Controlled failure plus human approval run |
 | Jenkins MCP | Contract and guide | — | Plugin selection, read-only service account, Claude tests |

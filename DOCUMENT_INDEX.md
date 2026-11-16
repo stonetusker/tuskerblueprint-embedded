@@ -201,6 +201,7 @@ verified_by:
 | `docs/16-implementation/mac-m3-development-guide.md` | IMPL-010 | Apple Silicon Development Guide | Approved |
 | `docs/16-implementation/mender-ab-state-model.md` | IMPL-020 | Mender A/B State Model | In Review |
 | `docs/16-implementation/mender-implementation.md` | IMPL-006 | Mender OTA Implementation | Approved |
+| `docs/16-implementation/mender-ota-explained.md` | IMPL-MENDER-UI-001 | Mender OTA Explained, with a Web UI Demo | Approved |
 | `docs/16-implementation/mender-ota-step-by-step.md` | IMPL-MENDER-OTA-002 | Mender OTA Step by Step | Approved |
 | `docs/16-implementation/mender-server-step-by-step.md` | IMPL-MENDER-SRV-002 | Mender Server Step by Step | Approved |
 | `docs/16-implementation/minio-cache-step-by-step.md` | IMPL-CACHE-001 | MinIO Cache Step by Step | Approved |
