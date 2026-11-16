@@ -69,9 +69,11 @@ Runs on `main` at 02:00 UTC: removes `build/tmp`, rebuilds the CI image from the
 
 - `VERSION`: semantic version, for example `0.4.0`
 - `SOURCE_COMMIT`: the full 40-character commit, which must already be on `main`
-- `SIGN_AND_PUBLISH`: leave ticked to continue to signing
+- `SIGN_AND_PUBLISH`: unticked by default. Tick it only when the `firmware-release` agent is online; unticked, the job stops after the tested, unsigned candidate and its SBOM are archived on the build
 
 The build stages run on `yocto-vps8`: input validation, `git merge-base --is-ancestor`, source-lock validation, the `kas/release.yml` build, the exact release disk booted in QEMU, the SBOM, and the unsigned candidate. The job then pauses at **Approve signing**. A member of `firmware-signing-approvers` approves it, and the signing stage runs on the isolated `firmware-release` agent. That stage signs the exact candidate and publishes it write-once to `minio://release-evidence/<version>/<commit>/`.
+
+The **Approve signing** prompt (*Sign candidate* or *Abort*) waits at most 4 hours and holds no executor; with no answer the build ends ABORTED and the candidate stays archived. The signing stage fails after 30 minutes if no `firmware-release` agent is online, rather than queueing forever.
 
 ## 5. Promotion to Mender (`sensornode-promote-mender`)
 
@@ -94,7 +96,7 @@ The build stages run on `yocto-vps8`: input validation, `git merge-base --is-anc
 
 ## 8. Release agent
 
-Provision the `firmware-release` agent with `infra/ansible/roles/jenkins_release_agent` (user `release-agent`, no Docker, signing key, verified `mender-artifact`, `mender-cli` and `mc`). Add it in **Manage Jenkins → Nodes** with label `firmware-release` and one executor. Until it exists, the release and promotion jobs wait in the queue when they reach that agent.
+Provision the `firmware-release` agent with `infra/ansible/roles/jenkins_release_agent` (user `release-agent`, no Docker, signing key, verified `mender-artifact`, `mender-cli` and `mc`). Add it in **Manage Jenkins → Nodes** with label `firmware-release` and one executor. Until it exists, leave `SIGN_AND_PUBLISH` unticked; a signing run fails after 30 minutes of waiting for the agent, and a promotion run waits in the queue until its 2-hour pipeline timeout.
 
 ## 9. Policy checks
 

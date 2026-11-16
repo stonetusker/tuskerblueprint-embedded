@@ -25,8 +25,8 @@ pipeline {
   parameters {
     string(name: 'VERSION', defaultValue: '', trim: true, description: 'Semantic version, for example 0.4.0')
     string(name: 'SOURCE_COMMIT', defaultValue: '', trim: true, description: 'Full 40-character commit that is already on main')
-    booleanParam(name: 'SIGN_AND_PUBLISH', defaultValue: true,
-                 description: 'After approval, sign on the firmware-release agent and publish the immutable candidate')
+    booleanParam(name: 'SIGN_AND_PUBLISH', defaultValue: false,
+                 description: 'After approval, sign on the firmware-release agent and publish the immutable candidate. Tick only when that agent is online.')
   }
 
   stages {
@@ -135,8 +135,11 @@ pipeline {
       }
     }
 
+    // Nobody approves within 4 hours: the build ends ABORTED; the tested unsigned
+    // candidate stays archived on the build, and a new run can sign it later.
     stage('Approve signing') {
       when { expression { params.SIGN_AND_PUBLISH != false } }
+      options { timeout(time: 4, unit: 'HOURS') }
       steps {
         input message: "Sign and publish SensorNode ${params.VERSION} built from ${params.SOURCE_COMMIT}?",
               ok: 'Sign candidate',
@@ -144,8 +147,11 @@ pipeline {
       }
     }
 
+    // The stage timeout also covers waiting for the firmware-release agent, so a
+    // missing or offline release agent fails the build instead of queueing forever.
     stage('Sign and publish') {
       when { expression { params.SIGN_AND_PUBLISH != false } }
+      options { timeout(time: 30, unit: 'MINUTES') }
       agent { label 'firmware-release' }
       environment {
         SIGNING_KEY = '/var/lib/tusker-release/mender-signing.pem'
