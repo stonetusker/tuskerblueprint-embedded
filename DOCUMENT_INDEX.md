@@ -125,6 +125,7 @@ verified_by:
 | `docs/09-operations/cache-maintenance.md` | OPS-004 | Cache Maintenance | Approved |
 | `docs/09-operations/certificate-management.md` | OPS-005 | Certificate Management | Approved |
 | `docs/09-operations/environment-strategy.md` | OPS-002 | Environment Strategy | Approved |
+| `docs/09-operations/emulated-device-access-and-ota.md` | RUN-DEVICE-001 | Emulated Device Access, Version Check and Manual OTA | Draft |
 | `docs/09-operations/incident-response.md` | OPS-006 | Incident Response | Approved |
 | `docs/09-operations/jenkins-runbook.md` | RUN-JENKINS-001 | Jenkins Runbook | Approved |
 | `docs/09-operations/mender-runbook.md` | RUN-MENDER-001 | Mender Runbook | Approved |
