@@ -2,13 +2,13 @@
 id: IMPL-DEMO-001
 title: Demo Guide
 status: Approved
-version: 0.2.0
+version: 0.3.0
 owner: Subeesh / Stonetusker Systems
 reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-11-07
-updated: 2026-11-12
+updated: 2026-11-17
 traces_to:
   - PRD-REQ-006
   - PRD-REQ-007
@@ -33,10 +33,58 @@ Say this plainly; it keeps the demo credible.
 | Mender OTA install, reboot, health gate, commit on a QEMU canary | Proven (EVID-003), re-run on 2026-11-07 |
 | Automatic device rollback of an unhealthy release | Proven (EVID-004), re-run on 2026-11-07 |
 | Jenkins pipeline and `FAILURE_DRILL` (broken image stopped in CI) | Rehearsed on the host on 2026-11-12 with the pipeline scripts (broken image built in 246 s; QEMU test `test_02_health_endpoint` failed as intended). Run it once from the Jenkins UI before showing it live |
-| Jenkins branch CI (`sensornode-ci`) and nightly build (`sensornode-nightly`) | `sensornode-ci » main` build #1 green on 2026-11-16 (Yocto build 611 s, 16 QEMU tests passed, cache published). Nightly first runs at 02:00 UTC on 2026-11-17 |
-| Jenkins release candidate, signing and Mender promotion jobs | Defined, but need the `firmware-release` agent and signing key — roadmap |
+| Jenkins branch CI (`sensornode-ci`) and nightly build (`sensornode-nightly`) | `sensornode-ci » main` build #1 green on 2026-11-16 (Yocto build 611 s, 14 QEMU tests passed, 2 skipped, cache published). First nightly green at 02:00 UTC on 2026-11-17 |
+| Jenkins release candidate, signing and Mender promotion jobs | Run end to end since 2026-11-16: candidate built and tested, signed on the isolated `firmware-release` agent after approval, published write-once to `release-evidence`, promoted to a canary deployment after a second approval. Devices do not enforce `ArtifactVerifyKey` yet |
 | Jenkins MCP / Claude diagnostics | Contract and guide only — present as roadmap, do not demo live |
-| Artifact signing, three-device fleet, physical board | Not done — roadmap |
+| Device-side signature enforcement, three-device fleet, physical board | Not done — roadmap |
+
+## Demo catalogue: what to show a prospect
+
+Each module below is a feature of this project that you can show on the host. Each one is tied to a problem prospects pay to solve. Don't show all of them. Pick the three to five that match the prospect (see [Pick modules by prospect](#pick-modules-by-prospect)). Open each one with the prospect's pain, show the proof on screen, then ask the discovery question. The answers are your qualification notes.
+
+Only show what the [What is real](#what-is-real-and-what-is-not) table marks as proven or running. Present the roadmap items as design, never as a live feature. If a live claim turns out wrong, it costs you the deal. If you say "not done yet" plainly, you build trust.
+
+### Demo modules
+
+| # | Module | Prospect pain it answers | Show on screen | Time | Discovery question |
+|---|---|---|---|---|---|
+| 1 | **Fail-safe OTA with automatic rollback** | "One bad update means a truck roll or a recall." | Section 3.4: the broken release installs and boots, the health gate refuses the commit, and the device returns to the last good version without anyone touching it | 7–10 min | "What happens today when an update goes wrong in the field? What did the last one cost you?" |
+| 2 | **Application-aware health gate** | "The device boots, but the product doesn't work." | `ArtifactCommit_Enter_50_sensornode-health`: service active, `/health` 200, no failed units. Explain that it is about 20 lines of shell, written for each product | 2 min | "What does 'healthy' mean for your device? Which checks would you want before an update is committed?" |
+| 3 | **Bad builds stopped in CI (failure drill)** | "Broken firmware reached customers before anyone noticed." | `sensornode-diagnostic-build` with `FAILURE_DRILL`: the broken image fails `test_02_health_endpoint`, the build goes red, a redacted evidence bundle is archived, and the job has no path to Mender | 10 min (start early) | "Where do you catch a bad image today: in CI, on the bench, or in the field?" |
+| 4 | **Testing without hardware: virtual devices in QEMU** | "Testing waits for boards; the bench is the bottleneck." | The release test boots the exact GPT disk that ships (UEFI → GRUB → A/B), not a debug copy. The CI image passes 14 runtime tests on every `main` build | 3 min | "How many boards does your team share? How long does a change wait for hardware testing?" |
+| 5 | **Reproducible Yocto builds with pinned sources** | "It worked on my board", and nobody can rebuild last year's release | `kas/source-lock.yml` pins every layer to a commit; a release build refuses to start if the lock is incomplete; the same `stonetusker/yocto-builder` container runs on laptops and in Jenkins | 3 min | "Could you rebuild, bit for bit, the image on a device you shipped 18 months ago?" |
+| 6 | **Shared build cache: hours to minutes** | "Yocto builds take hours; engineers wait." | MinIO buckets `yocto-sstate` and `yocto-downloads`; a warm-cache image build takes 106 s on the host and about 4 min in Jenkins, against hours from cold. Pull requests can read the cache but cannot write to it | 3 min | "How long is a clean build for you? How many engineer-hours a week go to waiting for it?" |
+| 7 | **One CI/CD engine, secrets off the code host** | "Our pipelines are scattered; secrets sit in GitHub; nobody owns the runners." | Jenkins runs branch CI, `main`, the nightly clean rebuild (green on 17 Nov), the release and the promotion. GitHub only stores the code, with no Actions and no secrets (ADR-011) | 3 min | "What does your firmware pipeline run on today, and who maintains it?" |
+| 8 | **Signed releases with separation of duties** | "A single compromised CI account could push firmware to the fleet." | `sensornode-release-candidate` → approval by `firmware-signing-approvers` → signing on the isolated `firmware-release` agent, the only holder of the key (no Docker, no sudo) → `sensornode-promote-mender` → approval by a second group → canary-only deployment | 5 min | "Who can sign and ship firmware today? Could one person or one CI token do it alone?" |
+| 9 | **Write-once release evidence and SBOM** | "Auditors, customers and regulators ask what's in the firmware and who approved it." | `minio://release-evidence/<version>/<commit>/`: the signed `.mender`, SHA-256, SPDX SBOM and QEMU test evidence. The bucket is versioned and the release agent cannot delete. Every OTA run also writes `artifacts/ota/<run>/` with `SHA256SUMS` | 3 min | "Do you have to produce an SBOM or update evidence for a customer, an auditor, or the EU Cyber Resilience Act?" |
+| 10 | **Traceability from requirement to evidence** | "Our documentation is written after the fact and never matches the code." | 220 controlled documents in `docs/`, linked requirement → test → evidence (`docs/13-traceability`, `docs/15-evidence`). `make docs-check` fails CI on a broken reference | 2 min | "How much effort does your last certification or customer audit take to prepare?" |
+| 11 | **Every device traceable to a commit** | "We don't know exactly what's running on device X." | `/version` reports `0.3.0-102-ff2bd03` (version, build number, git commit). Mender inventory shows the artifact per device, and the device identity comes from its serial | 1 min | "If a customer reports a bug, how quickly can you tell which source built their firmware?" |
+| 12 | **Self-hosted, on your premises** | "We can't send device data or firmware to a third-party cloud." | Mender, Jenkins and MinIO all run on one Ubuntu 24.04 host provisioned by Ansible (`infra/ansible`); no SaaS dependency | 2 min | "Do your devices or customers need on-premises or air-gapped update infrastructure?" |
+| 13 | **Operable by your team, not only by us** | "Consultants build it, then leave, and nobody can run it." | `scripts/demo-services-up.sh` recovers the stack after a reboot; runbooks in `docs/09-operations/` (including [device access and manual OTA](../09-operations/emulated-device-access-and-ota.md)); a diagnostic bundle on every failed build | 2 min | "Who would run this day to day in your team?" |
+| 14 | **AI-assisted build diagnostics, human-approved** (roadmap: design only) | "Build failures take senior engineers hours to triage." | `docs/10-ai-governance` and the Jenkins diagnostic job's approval gate: a read-only AI identity that cites evidence and proposes a fix, while a person approves any rebuild. Don't demo it live | 1 min | "How much senior time goes to triaging failed builds each week?" |
+
+### Pick modules by prospect
+
+| Prospect profile | Lead with | Then | Message to land |
+|---|---|---|---|
+| Connected-device / industrial IoT fleet | 1, 2 | 11, 12, 4 | "A bad update can't take your fleet offline, and you control the servers." |
+| Medical, automotive or other regulated product | 9, 10 | 8, 5, 1 | "The evidence auditors ask for is produced by every release, not written up at the end." |
+| Products sold into the EU (Cyber Resilience Act) | 9, 8 | 1, 11 | "SBOMs, signed releases and secure, recoverable updates are already part of the pipeline." |
+| Hardware start-up or a small firmware team | 6, 4 | 1, 7 | "Release-quality engineering without a platform team: minutes per build, no waiting for boards." |
+| Team with slow or fragile CI (Yocto build pain) | 6, 5 | 3, 7 | "Builds you can reproduce and trust, in minutes instead of hours." |
+| Security-led buyer (CISO, product security) | 8, 9 | 3, 12 | "No single person or token can ship firmware, and every release is signed and accounted for." |
+
+Keep regulatory claims precise. This project *produces evidence that supports* CRA, IEC 62443 or FDA cybersecurity submissions; it doesn't make a product compliant. Device-side signature enforcement (`ArtifactVerifyKey`) is still open. Say so if security comes up.
+
+### Turning the demo into a lead
+
+1. **Before the call:** find out the prospect's board or SoC, OS (Yocto, Buildroot, Debian), update method, and any regulatory driver. Choose modules from the table above and rehearse modules 1 and 3, which have the longest run times.
+2. **Open with the story** (deck slide 2), then ask: "Which of these has happened to you?" Let the answer decide the order of the modules.
+3. **During the demo:** after each module, ask its discovery question and note the answer. Concrete numbers, such as build time, number of devices, cost of a field failure or audit effort, are what qualify the lead.
+4. **Close with a specific next step**, not "let us know":
+   - a **fit assessment** (about 1 hour): we review their build, CI and update path against this blueprint and send a written gap list;
+   - a **pilot**: bring this blueprint up on *their* board, with A/B OTA, a health gate written for their application, and CI with QEMU or hardware-in-the-loop tests. Physical-board validation isn't done in this repository yet, so present the pilot as the step that proves it on their hardware.
+5. **Follow up within 48 hours** with the deck, the two diagrams (`docs/diagrams/`), the evidence summaries (`docs/15-evidence/ota-deployment-summary.md`, `rollback-summary.md`), and their answers to the discovery questions, restated as the problems the pilot will solve.
 
 ## Endpoints and credentials
 
@@ -68,6 +116,7 @@ Never run `docker compose down` on the Mender stack: its data is not in named vo
 - [ ] Mender UI opens and you are logged in; **Devices** shows `sensornode-canary-01` accepted; **Releases** lists `sensornode-0.3.0-102-ff2bd03` and `sensornode-0.3.0-103-ff2bd03-broken`.
 - [ ] Jenkins opens, jobs `sensornode-ci`, `sensornode-nightly` and `sensornode-diagnostic-build` are visible, node `ubuntu24` is online (Manage Jenkins → Nodes).
 - [ ] No QEMU device is already running: `pgrep -fa qemu-system` prints nothing.
+- [ ] Mender UI → **Deployments** shows nothing *In progress* or *Pending*. Abort any leftover deployment (for example a Jenkins promotion still *Queued to start*); otherwise the canary picks it up as soon as it boots, before the scripted run.
 - [ ] Nothing else is building on the host (`pgrep -fa bitbake` prints nothing); a build slows QEMU noticeably.
 - [ ] Laptop: four windows ready — Mender UI (Deployments tab), Jenkins, and two terminals (layout below).
 
@@ -166,7 +215,7 @@ Every run leaves API responses, device deployment logs, the serial console, and 
 
 ### 3.6 Roadmap (1 min)
 
-Signed artifacts with `ArtifactVerifyKey`, a three-device canary → pilot → fleet rollout, Jenkins MCP with a read-only Claude identity and human approval, and physical-board validation.
+Devices that enforce signatures (`ArtifactVerifyKey`), a production signing key in an HSM, a three-device canary → pilot → fleet rollout, Jenkins MCP with a read-only Claude identity and human approval, and physical-board validation.
 
 ## 4. If something goes wrong mid-demo
 
