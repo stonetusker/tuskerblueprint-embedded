@@ -31,7 +31,7 @@ verified_by:
 | `app/sensornode/README.md` | DIR-APP-SENSORNODE-README-MD | App Sensornode Documentation | Approved |
 | `ci/README.md` | DIR-CI-README-MD | Ci Documentation | Approved |
 | `ci/jenkins/README.md` | DIR-CI-JENKINS-README-MD | Ci Jenkins Documentation | Approved |
-| `ci/jenkins/mcp/README.md` | IMPL-MCP-001 | Jenkins MCP Implementation Guide | Approved |
+| `ci/jenkins/mcp/README.md` | IMPL-MCP-001 | Jenkins MCP Implementation Guide | Implemented |
 | `containers/jenkins/README.md` | DIR-CONTAINERS-JENKINS-README-MD | Containers Jenkins Documentation | Approved |
 | `containers/yocto-builder/README.md` | DIR-CONTAINERS-YOCTO-BUILDER-README-MD | Containers Yocto-Builder Documentation | Approved |
 | `docs/00-governance/definition-of-done.md` | GOV-007 | Definition of Done | Approved |
@@ -158,7 +158,7 @@ verified_by:
 | `docs/12-decisions/ADR-006-minio-cache.md` | ADR-006 | Use MinIO for Shared Downloads and sstate | Approved |
 | `docs/12-decisions/ADR-007-standalone-infrastructure.md` | ADR-007 | Provision Project C Standalone with Ansible | Approved |
 | `docs/12-decisions/ADR-008-mender-deployment.md` | ADR-008 | Validate Mender Topology in a Compatibility Spike | Proposed |
-| `docs/12-decisions/ADR-009-jenkins-mcp-integration.md` | ADR-009 | Use a Constrained Jenkins MCP Integration | Proposed |
+| `docs/12-decisions/ADR-009-jenkins-mcp-integration.md` | ADR-009 | Use a Constrained Jenkins MCP Integration | Approved |
 | `docs/12-decisions/ADR-010-human-approval-control.md` | ADR-010 | Enforce Rebuild Approval in Jenkins | Approved |
 | `docs/12-decisions/ADR-011-jenkins-single-orchestrator.md` | ADR-011 | Use Jenkins as the Only CI/CD Orchestrator | Approved |
 | `docs/12-decisions/README.md` | ADR-INDEX | Architecture Decision Records | Approved |
