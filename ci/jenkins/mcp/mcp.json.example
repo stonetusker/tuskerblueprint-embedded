@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "jenkins-diagnostics": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["ci/jenkins/mcp/jenkins_mcp_server.py"],
+      "env": {
+        "JENKINS_URL": "${JENKINS_URL:-http://192.168.0.109:8088}",
+        "JENKINS_MCP_USER": "${JENKINS_MCP_USER:-claude-diagnostics}",
+        "JENKINS_MCP_TOKEN_FILE": "${JENKINS_MCP_TOKEN_FILE:-~/.config/tusker/jenkins-mcp.token}",
+        "JENKINS_MCP_ALLOWED_JOBS": "${JENKINS_MCP_ALLOWED_JOBS:-sensornode-diagnostic-build}"
+      }
+    }
+  }
+}

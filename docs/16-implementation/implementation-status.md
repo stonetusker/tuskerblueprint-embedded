@@ -8,7 +8,7 @@ reviewers:
   - Principal Embedded Engineer
   - Platform Engineering
 created: 2026-07-20
-updated: 2026-11-16
+updated: 2026-11-20
 traces_to:
   - GOV-007
 verified_by:
@@ -33,7 +33,7 @@ Live status on the Ubuntu 24 host `192.168.0.109` as of 2026-10-23.
 | Jenkins pipelines | Partial | Diagnostic job and failure drill proven; `sensornode-ci` main build #1 green on 2026-11-16 (checks, Yocto build 611 s, 16 QEMU tests with 0 failed and 2 skipped, cache published); nightly, release and promotion jobs created; release candidate 0.0.1 built and QEMU-tested (build #5); `firmware-release` agent online since 2026-11-16 | First nightly run; first signed candidate and canary promotion |
 | Artifact signing | Ready | Lab EC P-256 key on the release agent only; test signature of candidate 0.0.1 validated against `mender/keys/artifact-verify-lab.pem` | First signed release; `ArtifactVerifyKey` in the release image |
 | Jenkins pipeline | Ready | Agent `ubuntu24` now runs as `jenkins-agent.service` | Controlled failure plus human approval run |
-| Jenkins MCP | Contract and guide | — | Plugin selection, read-only service account, Claude tests |
+| Jenkins MCP | Implemented | Constrained stdio adapter `ci/jenkins/mcp/jenkins_mcp_server.py` (ADR-009); 20 unit tests for the tool surface, denials, redaction, fencing, rate limit and audit (`make mcp-test`); Claude Code `/diagnose-jenkins-build` command | Create `claude-diagnostics` account and token on the host; live demonstration and negative tests (TEST-AI-001 to TEST-AI-006) |
 | Ansible / operations | Scaffold | — | Backup, restore, and recovery exercises |
 
 QEMU validation is not physical-board validation.

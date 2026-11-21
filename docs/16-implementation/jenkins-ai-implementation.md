@@ -22,4 +22,4 @@ The Jenkinsfile runs repository validation, the common Yocto build, and QEMU tes
 
 A rebuild is possible only when the job parameter enables the approval stage and an authenticated member of `embedded-release-approvers` approves the Jenkins `input` step.
 
-The selected MCP plugin or adapter must pass the documented allowlist and denial tests before use.
+Claude reads that evidence through the constrained MCP adapter in `ci/jenkins/mcp/` (ADR-009), which must pass the allowlist and denial tests (`make mcp-test`, plus the live negative tests) before use. Setup: [Jenkins MCP and Claude Step by Step](jenkins-mcp-claude-step-by-step.md).

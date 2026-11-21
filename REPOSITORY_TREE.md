@@ -56,6 +56,8 @@ ci/jenkins/job-config/sensornode-nightly.xml.template
 ci/jenkins/job-config/sensornode-promote-mender.xml.template
 ci/jenkins/job-config/sensornode-release-candidate.xml.template
 ci/jenkins/mcp/README.md
+ci/jenkins/mcp/jenkins_mcp_server.py
+ci/jenkins/mcp/mcp.json.example
 ci/jenkins/pipelines/ci.Jenkinsfile
 ci/jenkins/pipelines/nightly.Jenkinsfile
 ci/jenkins/pipelines/promote-mender.Jenkinsfile
@@ -394,6 +396,7 @@ scripts/test-sensornode-integration.sh
 scripts/upload-mender-artifact.sh
 scripts/verify-deployment.sh
 tests/README.md
+tests/mcp/test_jenkins_mcp_server.py
 tests/qemu/conftest.py
 tests/qemu/test_health.py
 tests/qemu/test_sensor.py

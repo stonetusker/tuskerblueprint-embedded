@@ -6,7 +6,7 @@ BUILD_DIR ?= $(PROJECT_ROOT)/build
 KAS_FILE ?= kas/ci.yml
 IMAGE ?= sensornode-image-ci
 
-.PHONY: help bootstrap doctor setup source-lock source-lock-check builder-image validate docs-check app-fmt app-test app-build shell-check python-check yaml-check pipeline-check policy-check \
+.PHONY: help bootstrap doctor setup source-lock source-lock-check builder-image validate docs-check app-fmt app-test app-build shell-check python-check mcp-test yaml-check pipeline-check policy-check \
         yocto-build qemu-test benchmark release-manifest review clean
 
 help:
@@ -19,6 +19,7 @@ help:
 	  'builder-image     Build the Yocto builder container' \
 	  'validate          Run repository validation suite' \
 	  'docs-check        Validate controlled Markdown and traceability' \
+	  'mcp-test          Run Jenkins MCP adapter unit tests (no Jenkins needed)' \
 	  'pipeline-check    Validate Jenkins pipelines and job definitions against CI/CD policy' \
 	  'app-test          Run SensorNode Go tests' \
 	  'app-build         Build the SensorNode application' \
@@ -48,7 +49,7 @@ setup:
 	python3 -m venv .venv
 	.venv/bin/pip install -r tools/requirements.txt
 
-validate: docs-check app-test app-integration python-check yaml-check pipeline-check policy-check shell-check review
+validate: docs-check app-test app-integration python-check mcp-test yaml-check pipeline-check policy-check shell-check review
 
 docs-check:
 	python3 tools/validate_specs.py
@@ -68,7 +69,10 @@ app-build:
 	cd app/sensornode && CGO_ENABLED=0 go build -trimpath -o ../../bin/sensornode ./cmd/sensornode
 
 python-check:
-	python3 -m compileall -q tools tests
+	python3 -m compileall -q tools tests ci/jenkins/mcp
+
+mcp-test:
+	python3 -m unittest discover -s tests/mcp -p "test_*.py"
 
 yaml-check:
 	python3 tools/validate_yaml.py

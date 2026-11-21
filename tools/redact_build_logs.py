@@ -10,6 +10,9 @@ PATTERNS = [
     (re.compile(r'(?i)(token|password|secret|access[_-]?key)(\s*[=:]\s*)([^\s"\']+)'), r'\1\2[REDACTED]'),
     (re.compile(r'AKIA[0-9A-Z]{16}'), '[REDACTED_AWS_ACCESS_KEY]'),
     (re.compile(r'gh[pousr]_[A-Za-z0-9_]{20,}'), '[REDACTED_GITHUB_TOKEN]'),
+    (re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----', re.S),
+     '[REDACTED_PRIVATE_KEY]'),
+    (re.compile(r'(?i)\b([a-z][a-z0-9+.-]*://)[^/\s:@]+:[^/\s@]+@'), r'\1[REDACTED]@'),
 ]
 
 
