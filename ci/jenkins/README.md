@@ -47,7 +47,7 @@ After a candidate is signed and published, `sensornode-release-candidate` pushes
 
 One-time setup:
 
-1. Create an SSH key and add its public half to the GitHub repository as a **deploy key with write access**.
-2. Add the private key to Jenkins as a *Secret file* credential with the ID `github-release-tag` (override with `GITHUB_TAG_CREDENTIALS_ID`).
+1. The push uses the `release-agent` user's own key, `~/.ssh/id_ed25519` on the release agent (override the path with `RELEASE_TAG_SSH_KEY`). Add its public half to the GitHub repository as a **deploy key with write access**. Check with `ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -T git@github.com` as `release-agent`.
+2. The build log prints the key's fingerprint (`Tag push key: ...`); it must match the deploy key shown in GitHub.
 3. The release agent pushes to `origin` unless `RELEASE_TAG_REMOTE` is set. Set it to the SSH URL, e.g. `git@github.com:stonetusker/tuskerblueprint-embedded.git`, if the job clones over HTTPS.
 4. Recommended: add a GitHub tag ruleset for `v*` that blocks updates and deletions, so release tags cannot be moved.

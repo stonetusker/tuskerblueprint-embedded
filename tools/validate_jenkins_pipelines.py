@@ -30,7 +30,7 @@ PIPELINES = {
 }
 RELEASE_ONLY = ('sign-artifact.sh', 'upload-mender-artifact.sh', 'create-mender-deployment.sh',
                 'publish_candidate.py', 'mender-signing', 'mender-access-token',
-                'push-release-tag.sh', 'github-release-tag')
+                'push-release-tag.sh')
 
 
 def jenkinsfile_parameters(text: str) -> list[str]:

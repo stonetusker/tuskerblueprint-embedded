@@ -205,21 +205,20 @@ pipeline {
         // rerunning scripts/push-release-tag.sh is safe.
         catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE',
                    message: "Release published, but tag v${params.VERSION} was not pushed to GitHub") {
-          // 'github-release-tag' is a Secret file credential holding the deploy key.
-          withCredentials([file(credentialsId: env.GITHUB_TAG_CREDENTIALS_ID ?: 'github-release-tag',
-                                variable: 'TAG_PUSH_KEY_FILE')]) {
-            withEnv(["TAG_REMOTE=${env.RELEASE_TAG_REMOTE ?: ''}"]) {
-              sh '''#!/bin/bash
-                set -Eeuo pipefail
-                set -a; source artifacts/promotion-parameters.env; set +a
-                # ssh refuses a key that others can read; use a private 0600 copy.
-                key="$(umask 077 && mktemp)"
-                trap 'rm -f "$key"' EXIT
-                cp "$TAG_PUSH_KEY_FILE" "$key"
-                export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-                scripts/push-release-tag.sh
-              '''
-            }
+          // Push with the release-agent user's own key (~/.ssh/id_ed25519), which is
+          // registered in GitHub as a deploy key with write access.
+          withEnv(["TAG_REMOTE=${env.RELEASE_TAG_REMOTE ?: ''}",
+                   "TAG_PUSH_KEY=${env.RELEASE_TAG_SSH_KEY ?: ''}"]) {
+            sh '''#!/bin/bash
+              set -Eeuo pipefail
+              set -a; source artifacts/promotion-parameters.env; set +a
+              key="${TAG_PUSH_KEY:-$HOME/.ssh/id_ed25519}"
+              [[ -r "$key" ]] || { echo "tag push key $key is missing or unreadable for $(id -un)" >&2; exit 1; }
+              # The fingerprint is not secret; compare it with the deploy key in GitHub.
+              echo "Tag push key ($(id -un)): $(ssh-keygen -lf "$key")"
+              export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+              scripts/push-release-tag.sh
+            '''
           }
         }
       }
