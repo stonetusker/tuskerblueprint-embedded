@@ -7,7 +7,8 @@
 //     QEMU, collect the SBOM and keep the unsigned candidate.
 //  2. A member of firmware-signing-approvers approves signing (no executor held).
 //  3. On the isolated release agent (firmware-release): sign the exact candidate
-//     with the key that only that agent holds and publish it write-once to MinIO.
+//     with the key that only that agent holds, publish it write-once to MinIO,
+//     then push the annotated release tag v<VERSION> to GitHub (tag ref only).
 //
 // The build agent never sees the signing key; the release agent never runs Docker
 // or touches the Yocto cache.
@@ -62,6 +63,12 @@ pipeline {
               git fetch --prune origin '+refs/heads/main:refs/remotes/origin/main'
               git checkout --detach "$SOURCE_COMMIT"
               git merge-base --is-ancestor "$SOURCE_COMMIT" origin/main
+              # Fail now, not after a long build, if v$VERSION already marks another commit.
+              existing="$(git ls-remote --tags origin "refs/tags/v${VERSION}^{}" "refs/tags/v${VERSION}" | awk '{print $1}' | tail -n 1)"
+              if [[ -n "$existing" && "$existing" != "$SOURCE_COMMIT" ]]; then
+                echo "tag v${VERSION} already exists at $existing; choose a new VERSION" >&2
+                exit 1
+              fi
               rm -rf artifacts
             '''
           }
@@ -192,6 +199,24 @@ pipeline {
           '''
         }
         archiveArtifacts artifacts: 'artifacts/publish/*.mender.sha256, artifacts/promotion-parameters.env', fingerprint: true
+
+        // Mark the released source in Git. The candidate is already published, so a
+        // tag push failure leaves the build UNSTABLE rather than undoing a release;
+        // rerunning scripts/push-release-tag.sh is safe.
+        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE',
+                   message: "Release published, but tag v${params.VERSION} was not pushed to GitHub") {
+          withCredentials([sshUserPrivateKey(credentialsId: env.GITHUB_TAG_CREDENTIALS_ID ?: 'github-release-tag',
+                                             keyFileVariable: 'TAG_PUSH_KEY')]) {
+            withEnv(["TAG_REMOTE=${env.RELEASE_TAG_REMOTE ?: ''}"]) {
+              sh '''#!/bin/bash
+                set -Eeuo pipefail
+                set -a; source artifacts/promotion-parameters.env; set +a
+                export GIT_SSH_COMMAND="ssh -i $TAG_PUSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+                scripts/push-release-tag.sh
+              '''
+            }
+          }
+        }
       }
     }
   }

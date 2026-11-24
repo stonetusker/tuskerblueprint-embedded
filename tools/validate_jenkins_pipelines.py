@@ -29,7 +29,8 @@ PIPELINES = {
     'promote': JENKINS / 'pipelines/promote-mender.Jenkinsfile',
 }
 RELEASE_ONLY = ('sign-artifact.sh', 'upload-mender-artifact.sh', 'create-mender-deployment.sh',
-                'publish_candidate.py', 'mender-signing', 'mender-access-token')
+                'publish_candidate.py', 'mender-signing', 'mender-access-token',
+                'push-release-tag.sh', 'github-release-tag')
 
 
 def jenkinsfile_parameters(text: str) -> list[str]:
@@ -100,6 +101,8 @@ def main() -> int:
                    'validate_source_lock.py', 'run-release-qemu-tests.sh', 'generate-sbom.sh'):
         if needed not in release:
             failures.append(f'release-candidate pipeline missing control: {needed}')
+    if 'push-release-tag.sh' not in release or release.find('push-release-tag.sh') < release.find('publish_candidate.py'):
+        failures.append('release-candidate pipeline must push the release tag only after publishing the candidate')
     if release.find("label 'firmware-release'") < release.find("submitter: 'firmware-signing-approvers'"):
         failures.append('release-candidate pipeline must approve before it reaches the firmware-release agent')
 
