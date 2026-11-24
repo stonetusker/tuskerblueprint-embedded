@@ -4,13 +4,13 @@
 # Runs on the firmware-release agent at the end of sensornode-release-candidate,
 # only after the candidate is signed and written to MinIO. The tag is annotated,
 # points at the exact SOURCE_COMMIT that was built, and records where the signed
-# artifact lives. When TAG_SIGNING_KEY exists the tag is SSH-signed as well.
+# artifact lives. Tags are annotated and intentionally not signed.
 #
 # Idempotent: if v$VERSION already exists on the remote at SOURCE_COMMIT this is
 # a no-op; if it exists at any other commit the script fails and changes nothing.
 #
 # Inputs: VERSION, SOURCE_COMMIT, CANDIDATE_URI, EXPECTED_SHA256,
-#         TAG_REMOTE (push URL, default: origin's URL), TAG_SIGNING_KEY (optional),
+#         TAG_REMOTE (push URL, default: origin's URL),
 #         GIT_SSH_COMMAND (set by the pipeline to use the tag-push deploy key).
 set -Eeuo pipefail
 source "$(dirname "$0")/lib/common.sh"
@@ -19,7 +19,6 @@ VERSION="${VERSION:-}"
 SOURCE_COMMIT="${SOURCE_COMMIT:-}"
 CANDIDATE_URI="${CANDIDATE_URI:-}"
 EXPECTED_SHA256="${EXPECTED_SHA256:-}"
-TAG_SIGNING_KEY="${TAG_SIGNING_KEY:-/var/lib/tusker-release/git-tag-signing.key}"
 
 [[ -n "$VERSION" && -n "$SOURCE_COMMIT" ]] || die "VERSION and SOURCE_COMMIT are required"
 [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "SOURCE_COMMIT must be a full 40-character commit"
@@ -49,15 +48,8 @@ Signed artifact: ${CANDIDATE_URI:-unknown}
 Artifact sha256: ${EXPECTED_SHA256:-unknown}
 Jenkins build: ${BUILD_URL:-${BUILD_NUMBER:-unknown}}"
 
-git_id=(-c user.name="SensorNode Release" -c user.email="release@sensornode.invalid")
-if [[ -r "$TAG_SIGNING_KEY" ]]; then
-    git "${git_id[@]}" -c gpg.format=ssh -c user.signingkey="$TAG_SIGNING_KEY" \
-        tag --sign --force -m "$message" "$tag" "$SOURCE_COMMIT"
-    info "created SSH-signed tag $tag"
-else
-    warn "no tag signing key at $TAG_SIGNING_KEY; creating an unsigned annotated tag"
-    git "${git_id[@]}" tag --annotate --force -m "$message" "$tag" "$SOURCE_COMMIT"
-fi
+git -c user.name="SensorNode Release" -c user.email="release@sensornode.invalid" \
+    -c tag.gpgSign=false tag --annotate --force -m "$message" "$tag" "$SOURCE_COMMIT"
 
 # Push only the tag ref, never a branch.
 git push "$remote" "refs/tags/${tag}:refs/tags/${tag}"

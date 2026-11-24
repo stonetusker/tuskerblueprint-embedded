@@ -21,4 +21,4 @@ A release progresses through Built, Tested, Candidate, Approved, Canary, Verifie
 
 The artifact tested in QEMU is promoted without rebuilding. Promotion checks signature, checksum, SBOM, test evidence, approval, and target compatibility.
 
-Public repository releases use signed Git tags and include Markdown release notes linking requirements, ADRs, tests, and evidence.
+Public repository releases use annotated (unsigned) Git tags `v<VERSION>`, pushed by the release pipeline, and include Markdown release notes linking requirements, ADRs, tests, and evidence.
