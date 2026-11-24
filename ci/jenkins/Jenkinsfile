@@ -34,9 +34,14 @@ pipeline {
           #!/bin/bash 
           git fetch --all --tags --prune
           
-          git rev-parse --verify "${SOURCE_COMMIT}^{commit}" || git rev-parse --verify "origin/${SOURCE_COMMIT}^{commit}"
-          
-          git checkout "${SOURCE_COMMIT}" || git checkout --detach "origin/${SOURCE_COMMIT}"
+          # Prefer the freshly fetched remote branch: a plain "git checkout main"
+          # lands on a stale local branch left by an earlier build.
+          if git rev-parse --verify --quiet "origin/${SOURCE_COMMIT}^{commit}"; then
+            git checkout --detach "origin/${SOURCE_COMMIT}"
+          else
+            git rev-parse --verify "${SOURCE_COMMIT}^{commit}"
+            git checkout --detach "${SOURCE_COMMIT}"
+          fi
         """
       }   
     }

@@ -68,8 +68,10 @@ app-integration:
 app-build:
 	cd app/sensornode && CGO_ENABLED=0 go build -trimpath -o ../../bin/sensornode ./cmd/sensornode
 
+# Bytecode goes to a throwaway prefix so a stale or foreign-owned __pycache__
+# in the workspace can never fail the check.
 python-check:
-	python3 -m compileall -q tools tests ci/jenkins/mcp
+	PYTHONPYCACHEPREFIX="$$(mktemp -d)" python3 -m compileall -q tools tests ci/jenkins/mcp
 
 mcp-test:
 	python3 -m unittest discover -s tests/mcp -p "test_*.py"
